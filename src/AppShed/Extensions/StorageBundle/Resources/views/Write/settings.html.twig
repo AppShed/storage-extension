@@ -1,0 +1,9 @@
+{% extends '::base.html.twig' %}
+
+{% block title %}Edit Write Settings{% endblock %}
+
+{% block body %}
+    {{ form(form) }}
+
+    <a href="{{ path('write_store_edit', appParams) }}" class="btn btn-default">New Store</a>
+{% endblock %}

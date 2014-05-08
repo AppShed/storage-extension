@@ -1,0 +1,5 @@
+app_shed_extensions_storage:
+    resource: "@AppShedExtensionsStorageBundle/Controller/"
+    type:     annotation
+    prefix:   /
+
