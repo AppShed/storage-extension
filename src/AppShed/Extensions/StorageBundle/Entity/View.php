@@ -100,6 +100,8 @@ class View
     {
         $this->filters[] = $filters;
 
+        $filters->setView($this);
+
         return $this;
     }
 
@@ -111,6 +113,8 @@ class View
     public function removeFilter(\AppShed\Extensions\StorageBundle\Entity\Filter $filters)
     {
         $this->filters->removeElement($filters);
+
+        $filters->setView(null);
     }
 
     /**

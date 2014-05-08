@@ -5,3 +5,9 @@
 {% block body %}
     {{ form(form) }}
 {% endblock %}
+
+{% block javascripts %}
+    {% javascripts '@storage_js' '@AppShedExtensionsStorageBundle/Resources/private/js/Read/filters.js' filter='?uglifyjs' %}
+    <script src="{{ asset_url }}"></script>
+    {% endjavascripts %}
+{% endblock %}

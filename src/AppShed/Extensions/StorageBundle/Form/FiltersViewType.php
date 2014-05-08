@@ -20,7 +20,8 @@ class FiltersViewType extends AbstractType
             ->add('filters', 'collection', [
                 'type' => new FilterType(),
                 'allow_add' => true,
-                'allow_delete' => true
+                'allow_delete' => true,
+                'by_reference' => false
             ])
             ->add('submit', 'submit')
         ;
