@@ -8,6 +8,10 @@ namespace AppShed\Extensions\StorageBundle\Controller;
 use AppShed\Extensions\StorageBundle\Entity\Store;
 use AppShed\Extensions\StorageBundle\Form\FiltersViewType;
 use AppShed\Extensions\StorageBundle\Form\ViewType;
+use AppShed\Remote\Element\Item\Link;
+use AppShed\Remote\Element\Item\Text;
+use AppShed\Remote\Element\Screen\Screen;
+use AppShed\Remote\HTML\Remote;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
@@ -45,7 +49,8 @@ class ReadController extends StorageController
      */
     public function filtersAction(Request $request)
     {
-        $form = $this->createForm(new FiltersViewType(), $this->getView($request));
+        $view = $this->getView($request);
+        $form = $this->createForm(new FiltersViewType($view->getStore()), $view);
 
         if ($request->getMethod() == 'POST') {
             $form->handleRequest($request);
@@ -59,5 +64,39 @@ class ReadController extends StorageController
             'form' => $form->createView(),
             'appParams' => $this->getExtensionParameters($request)
         ];
+    }
+
+    /**
+     * @Route("/read", name="read")
+     * @Method({"GET"})
+     */
+    public function appshedAction(Request $request)
+    {
+        $view = $this->getView($request);
+        if (!$view->getId()) {
+            $screen = new Screen("Error");
+            $screen->addChild(new Text("You must setup the view first"));
+            return (new Remote($screen))->getSymfonyResponse();
+        }
+
+        $rootScreen = new Screen("Data");
+
+        $datas = $this->getDoctrine()->getRepository('AppShedExtensionsStorageBundle:Data')->getDataForView($view);
+        foreach ($datas as $dataO) {
+            $data = $dataO->getData();
+            $values = array_values($data);
+            if ($values) {
+                $dataScreen = new Screen($values[0]);
+                foreach ($values as $value) {
+                    $dataScreen->addChild(new Text($value));
+                }
+
+                $link = new Link($values[0]);
+                $link->setScreenLink($dataScreen);
+                $rootScreen->addChild($link);
+            }
+        }
+
+        return (new Remote($rootScreen))->getSymfonyResponse();
     }
 } 

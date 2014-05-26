@@ -20,7 +20,8 @@
         "sensio/generator-bundle": "~2.3",
         "incenteev/composer-parameter-handler": "~2.0",
         "twbs/bootstrap": "v3.1.1",
-        "frameworks/jquery": "~2.1.0"
+        "frameworks/jquery": "~2.1.0",
+        "appshed/extension-api": "~2.0.2"
     },
     "scripts": {
         "post-install-cmd": [

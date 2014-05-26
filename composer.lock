@@ -3,8 +3,46 @@
         "This file locks the dependencies of your project to a known state",
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file"
     ],
-    "hash": "f0e03d8279bcb0e6020d19bd0bdcde36",
+    "hash": "dd745386ae7356214806e61739f3d636",
     "packages": [
+        {
+            "name": "appshed/extension-api",
+            "version": "2.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/AppShed/extension-api.git",
+                "reference": "0a224e409a66b275745b16cbd973c0750cc3310d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/AppShed/extension-api/zipball/0a224e409a66b275745b16cbd973c0750cc3310d",
+                "reference": "0a224e409a66b275745b16cbd973c0750cc3310d",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "AppShed\\Remote\\": [
+                        "src/"
+                    ]
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fred Cox",
+                    "email": "fred@appshed.com"
+                }
+            ],
+            "description": "API for AppShed remote screens",
+            "time": "2014-02-16 20:54:53"
+        },
         {
             "name": "doctrine/annotations",
             "version": "v1.1.2",
@@ -1626,20 +1664,12 @@
             "time": "2014-02-13 10:19:29"
         }
     ],
-    "packages-dev": [
-
-    ],
-    "aliases": [
-
-    ],
+    "packages-dev": [],
+    "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [
-
-    ],
+    "stability-flags": [],
     "platform": {
         "php": ">=5.3.3"
     },
-    "platform-dev": [
-
-    ]
+    "platform-dev": []
 }

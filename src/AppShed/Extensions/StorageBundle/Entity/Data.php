@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
  * Data
  *
  * @ORM\Table()
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass="AppShed\Extensions\StorageBundle\Entity\Repository\DataRepository")
  */
 class Data
 {
@@ -20,6 +20,13 @@ class Data
      * @ORM\GeneratedValue(strategy="AUTO")
      */
     private $id;
+
+    /**
+     * @var array
+     *
+     * @ORM\Column(name="columns", type="json_array", nullable=true)
+     */
+    private $columns;
 
     /**
      * @var array
@@ -44,6 +51,24 @@ class Data
     public function getId()
     {
         return $this->id;
+    }
+
+    /**
+     * @return array
+     */
+    public function getColumns()
+    {
+        return $this->columns;
+    }
+
+    /**
+     * @param array $columns
+     * @return Data
+     */
+    public function setColumns(array $columns)
+    {
+        $this->columns = $columns;
+        return $this;
     }
 
     /**

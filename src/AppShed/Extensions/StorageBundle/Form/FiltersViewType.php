@@ -3,6 +3,7 @@
 namespace AppShed\Extensions\StorageBundle\Form;
 
 use AppShed\Extensions\StorageBundle\Entity\App;
+use AppShed\Extensions\StorageBundle\Entity\Store;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -11,6 +12,16 @@ use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 class FiltersViewType extends AbstractType
 {
     /**
+     * @var \AppShed\Extensions\StorageBundle\Entity\Store
+     */
+    private $store;
+
+    public function __construct(Store $store)
+    {
+        $this->store = $store;
+    }
+
+    /**
      * @param FormBuilderInterface $builder
      * @param array $options
      */
@@ -18,7 +29,7 @@ class FiltersViewType extends AbstractType
     {
         $builder
             ->add('filters', 'collection', [
-                'type' => new FilterType(),
+                'type' => new FilterType($this->store),
                 'allow_add' => true,
                 'allow_delete' => true,
                 'by_reference' => false
