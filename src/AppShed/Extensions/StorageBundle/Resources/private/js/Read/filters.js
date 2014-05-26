@@ -1,4 +1,4 @@
-$('.form-collection').each(function(idx, formCollection) {
+$('.form-collection').each(function(i, formCollection) {
     var $formCollection = $(formCollection),
         $elements = $formCollection.find('.form-collection-elements'),
         idx = $elements.find('.form-collection-element').length;

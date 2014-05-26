@@ -3,19 +3,13 @@
 namespace AppShed\Extensions\StorageBundle\Controller;
 
 use AppShed\Extensions\StorageBundle\Entity\Data;
-use AppShed\Extensions\StorageBundle\Entity\Store;
-use AppShed\Extensions\StorageBundle\Form\StoreType;
-use AppShed\Extensions\StorageBundle\Form\ViewType;
 use AppShed\Remote\Element\Item\Text;
 use AppShed\Remote\Element\Screen\Screen;
 use AppShed\Remote\HTML\Remote;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class WriteController extends StorageController
 {
@@ -43,11 +37,15 @@ class WriteController extends StorageController
     }
 
     /**
-     * @Route("/write", name="write")
-     * @Method({"GET", "POST"})
+     * @Route("/write/app", name="write")
+     * @Method({"GET", "POST", "OPTIONS"})
      */
     public function appshedAction(Request $request)
     {
+        if (Remote::isOptionsRequest()) {
+            return Remote::getCORSSymfonyResponse();
+        }
+
         $view = $this->getView($request);
         if (!$view->getId()) {
             $screen = new Screen("Error");
@@ -81,7 +79,7 @@ class WriteController extends StorageController
         $em->persist($dataO);
         $em->flush();
 
-        $screen = new Screen("Saved");
+        $screen = new Screen($view->getTitle());
         $screen->addChild(new Text("Entry saved"));
         return (new Remote($screen))->getSymfonyResponse();
     }

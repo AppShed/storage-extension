@@ -2,6 +2,7 @@
 
 namespace AppShed\Extensions\StorageBundle\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -43,14 +44,14 @@ class Store
     private $app;
 
     /**
-     * @var View[]
+     * @var ArrayCollection
      *
      * @ORM\OneToMany(targetEntity="View", mappedBy="store", cascade={"persist", "remove"}, orphanRemoval=true)
      */
     private $views;
 
     /**
-     * @var Data[]
+     * @var ArrayCollection
      *
      * @ORM\OneToMany(targetEntity="Data", mappedBy="store", cascade={"persist", "remove"}, orphanRemoval=true)
      */
@@ -116,17 +117,17 @@ class Store
      */
     public function __construct()
     {
-        $this->views = new \Doctrine\Common\Collections\ArrayCollection();
-        $this->data = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->views = new ArrayCollection();
+        $this->data = new ArrayCollection();
     }
 
     /**
      * Set app
      *
-     * @param \AppShed\Extensions\StorageBundle\Entity\App $app
+     * @param App $app
      * @return Store
      */
-    public function setApp(\AppShed\Extensions\StorageBundle\Entity\App $app = null)
+    public function setApp(App $app = null)
     {
         $this->app = $app;
 
@@ -136,7 +137,7 @@ class Store
     /**
      * Get app
      *
-     * @return \AppShed\Extensions\StorageBundle\Entity\App 
+     * @return App
      */
     public function getApp()
     {
@@ -146,10 +147,10 @@ class Store
     /**
      * Add views
      *
-     * @param \AppShed\Extensions\StorageBundle\Entity\View $views
+     * @param View $views
      * @return Store
      */
-    public function addView(\AppShed\Extensions\StorageBundle\Entity\View $views)
+    public function addView(View $views)
     {
         $this->views[] = $views;
 
@@ -159,9 +160,9 @@ class Store
     /**
      * Remove views
      *
-     * @param \AppShed\Extensions\StorageBundle\Entity\View $views
+     * @param View $views
      */
-    public function removeView(\AppShed\Extensions\StorageBundle\Entity\View $views)
+    public function removeView(View $views)
     {
         $this->views->removeElement($views);
     }
@@ -179,10 +180,10 @@ class Store
     /**
      * Add data
      *
-     * @param \AppShed\Extensions\StorageBundle\Entity\Data $data
+     * @param Data $data
      * @return Store
      */
-    public function addDatum(\AppShed\Extensions\StorageBundle\Entity\Data $data)
+    public function addDatum(Data $data)
     {
         $this->data[] = $data;
 
@@ -192,9 +193,9 @@ class Store
     /**
      * Remove data
      *
-     * @param \AppShed\Extensions\StorageBundle\Entity\Data $data
+     * @param Data $data
      */
-    public function removeDatum(\AppShed\Extensions\StorageBundle\Entity\Data $data)
+    public function removeDatum(Data $data)
     {
         $this->data->removeElement($data);
     }

@@ -26,6 +26,7 @@ class ViewType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
+            ->add('title')
             ->add('store', 'entity', [
                 'class' => 'AppShed\Extensions\StorageBundle\Entity\Store',
                 'query_builder' => function (EntityRepository $repository) {

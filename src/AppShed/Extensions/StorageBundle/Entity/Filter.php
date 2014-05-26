@@ -137,10 +137,10 @@ class Filter
     /**
      * Set view
      *
-     * @param \AppShed\Extensions\StorageBundle\Entity\View $view
+     * @param View $view
      * @return Filter
      */
-    public function setView(\AppShed\Extensions\StorageBundle\Entity\View $view = null)
+    public function setView(View $view = null)
     {
         $this->view = $view;
 
@@ -150,7 +150,7 @@ class Filter
     /**
      * Get view
      *
-     * @return \AppShed\Extensions\StorageBundle\Entity\View 
+     * @return View
      */
     public function getView()
     {

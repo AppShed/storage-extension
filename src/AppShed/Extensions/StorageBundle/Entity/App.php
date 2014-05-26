@@ -2,6 +2,7 @@
 
 namespace AppShed\Extensions\StorageBundle\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -36,7 +37,7 @@ class App
     private $appSecret;
 
     /**
-     * @var  Store[]
+     * @var ArrayCollection
      *
      * @ORM\OneToMany(targetEntity="Store", mappedBy="app", cascade={"persist", "remove"}, orphanRemoval=true)
      */
@@ -102,16 +103,16 @@ class App
      */
     public function __construct()
     {
-        $this->stores = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->stores = new ArrayCollection();
     }
 
     /**
      * Add stores
      *
-     * @param \AppShed\Extensions\StorageBundle\Entity\Store $stores
+     * @param Store $stores
      * @return App
      */
-    public function addStore(\AppShed\Extensions\StorageBundle\Entity\Store $stores)
+    public function addStore(Store $stores)
     {
         $this->stores[] = $stores;
 
@@ -121,9 +122,9 @@ class App
     /**
      * Remove stores
      *
-     * @param \AppShed\Extensions\StorageBundle\Entity\Store $stores
+     * @param Store $stores
      */
-    public function removeStore(\AppShed\Extensions\StorageBundle\Entity\Store $stores)
+    public function removeStore(Store $stores)
     {
         $this->stores->removeElement($stores);
     }

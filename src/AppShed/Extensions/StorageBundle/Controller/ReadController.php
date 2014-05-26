@@ -5,9 +5,8 @@
 
 namespace AppShed\Extensions\StorageBundle\Controller;
 
-use AppShed\Extensions\StorageBundle\Entity\Store;
+use AppShed\Extensions\StorageBundle\Entity\Data;
 use AppShed\Extensions\StorageBundle\Form\FiltersViewType;
-use AppShed\Extensions\StorageBundle\Form\ViewType;
 use AppShed\Remote\Element\Item\Link;
 use AppShed\Remote\Element\Item\Text;
 use AppShed\Remote\Element\Screen\Screen;
@@ -68,10 +67,14 @@ class ReadController extends StorageController
 
     /**
      * @Route("/read", name="read")
-     * @Method({"GET"})
+     * @Method({"GET", "POST", "OPTIONS"})
      */
     public function appshedAction(Request $request)
     {
+        if (Remote::isOptionsRequest()) {
+            return Remote::getCORSSymfonyResponse();
+        }
+
         $view = $this->getView($request);
         if (!$view->getId()) {
             $screen = new Screen("Error");
@@ -79,9 +82,10 @@ class ReadController extends StorageController
             return (new Remote($screen))->getSymfonyResponse();
         }
 
-        $rootScreen = new Screen("Data");
+        $rootScreen = new Screen($view->getTitle());
 
         $datas = $this->getDoctrine()->getRepository('AppShedExtensionsStorageBundle:Data')->getDataForView($view);
+        /** @var Data $dataO */
         foreach ($datas as $dataO) {
             $data = $dataO->getData();
             $values = array_values($data);

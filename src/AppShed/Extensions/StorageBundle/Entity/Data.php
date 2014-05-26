@@ -97,10 +97,10 @@ class Data
     /**
      * Set store
      *
-     * @param \AppShed\Extensions\StorageBundle\Entity\Store $store
+     * @param Store $store
      * @return Data
      */
-    public function setStore(\AppShed\Extensions\StorageBundle\Entity\Store $store = null)
+    public function setStore(Store $store = null)
     {
         $this->store = $store;
 
@@ -110,7 +110,7 @@ class Data
     /**
      * Get store
      *
-     * @return \AppShed\Extensions\StorageBundle\Entity\Store 
+     * @return Store
      */
     public function getStore()
     {

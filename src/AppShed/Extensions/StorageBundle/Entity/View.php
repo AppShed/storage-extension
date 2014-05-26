@@ -2,6 +2,7 @@
 
 namespace AppShed\Extensions\StorageBundle\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -43,12 +44,18 @@ class View
     private $store;
 
     /**
-     * @var Filter[]
+     * @var ArrayCollection
      *
      * @ORM\OneToMany(targetEntity="Filter", mappedBy="view", cascade={"persist", "remove"}, orphanRemoval=true)
      */
     private $filters;
 
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="title", type="string", length=255)
+     */
+    private $title;
 
     /**
      * Get id
@@ -64,16 +71,16 @@ class View
      */
     public function __construct()
     {
-        $this->filters = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->filters = new ArrayCollection();
     }
 
     /**
      * Set store
      *
-     * @param \AppShed\Extensions\StorageBundle\Entity\Store $store
+     * @param Store $store
      * @return View
      */
-    public function setStore(\AppShed\Extensions\StorageBundle\Entity\Store $store = null)
+    public function setStore(Store $store = null)
     {
         $this->store = $store;
 
@@ -83,7 +90,7 @@ class View
     /**
      * Get store
      *
-     * @return \AppShed\Extensions\StorageBundle\Entity\Store 
+     * @return Store
      */
     public function getStore()
     {
@@ -93,10 +100,10 @@ class View
     /**
      * Add filters
      *
-     * @param \AppShed\Extensions\StorageBundle\Entity\Filter $filters
+     * @param Filter $filters
      * @return View
      */
-    public function addFilter(\AppShed\Extensions\StorageBundle\Entity\Filter $filters)
+    public function addFilter(Filter $filters)
     {
         $this->filters[] = $filters;
 
@@ -108,9 +115,9 @@ class View
     /**
      * Remove filters
      *
-     * @param \AppShed\Extensions\StorageBundle\Entity\Filter $filters
+     * @param Filter $filters
      */
-    public function removeFilter(\AppShed\Extensions\StorageBundle\Entity\Filter $filters)
+    public function removeFilter(Filter $filters)
     {
         $this->filters->removeElement($filters);
 
@@ -171,5 +178,23 @@ class View
     public function getIdentifier()
     {
         return $this->identifier;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTitle()
+    {
+        return $this->title;
+    }
+
+    /**
+     * @param string $title
+     * @return View
+     */
+    public function setTitle($title)
+    {
+        $this->title = $title;
+        return $this;
     }
 }
