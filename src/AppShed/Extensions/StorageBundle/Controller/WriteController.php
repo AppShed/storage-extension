@@ -37,7 +37,7 @@ class WriteController extends StorageController
     }
 
     /**
-     * @Route("/write/app", name="write")
+     * @Route("/write", name="write")
      * @Method({"GET", "POST", "OPTIONS"})
      */
     public function appshedAction(Request $request)
