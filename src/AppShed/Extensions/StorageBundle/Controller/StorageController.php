@@ -83,7 +83,8 @@ abstract class StorageController extends Controller
             return [
                 'appId' => $request->query->get('appId'),
                 'appSecret' => $request->query->get('appSecret'),
-                'itemid' => $request->query->get('itemid'),
+                //This is converted to an int because of a bug in appshed where only the id is in the url in some places
+                'itemid' => str_replace(["item", "tab"], "",  $request->query->get('itemid')),
                 'identifier' => $request->query->get('identifier')
             ];
         }
