@@ -1,13 +1,65 @@
 {% extends '::base.html.twig' %}
 
+{% form_theme form _self %}
+
 {% block title %}Edit Read Filters{% endblock %}
 
 {% block body %}
     {{ form(form) }}
+
+    <a href="{{ path('read_settings', appParams) }}" class="btn btn-default">Cancel</a>
 {% endblock %}
 
 {% block javascripts %}
     {% javascripts '@storage_js' '@AppShedExtensionsStorageBundle/Resources/private/js/Read/filters.js' filter='?uglifyjs' %}
     <script src="{{ asset_url }}"></script>
     {% endjavascripts %}
+{% endblock %}
+
+{% block stylesheets %}
+    {% stylesheets '@storage_css' '@AppShedExtensionsStorageBundle/Resources/private/css/Read/filters.less' filter='less' filter='cssrewrite' filter='?uglifycss' %}
+        <link rel="stylesheet" href="{{ asset_url }}" />
+    {% endstylesheets %}
+{% endblock %}
+
+{% block collection_widget %}
+    {% spaceless %}
+        <div class="form-collection">
+            <div class="form-collection-elements">
+                {% for subform in form %}
+                    <div class="form-collection-element">
+                        {% if allow_delete %}
+                            <div class="row">
+                                <div class="col-xs-10">
+                                    {{ form_widget(subform) }}
+                                </div>
+                                <div class="col-xs-2">
+                                    <a class="form-collection-delete btn btn-small btn-danger">Delete</a>
+                                </div>
+                            </div>
+                        {% else %}
+                            {{ form_widget(subform) }}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            {% if prototype is defined %}
+                {% set prototype %}
+                <div class="form-collection-element">
+                    <div class="row">
+                        <div class="col-xs-10">
+                            {{ form_widget(prototype) }}
+                        </div>
+                        <div class="col-xs-2">
+                            <a class="form-collection-delete btn btn-small btn-danger">Delete</a>
+                        </div>
+                    </div>
+                </div>
+                {% endset %}
+                <div class="form-collection-footer">
+                    <a data-prototype="{{ prototype|e }}" class="form-collection-add btn btn-small btn-success">New filter</a>
+                </div>
+            {% endif %}
+        </div>
+    {% endspaceless %}
 {% endblock %}

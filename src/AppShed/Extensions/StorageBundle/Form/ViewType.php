@@ -26,15 +26,18 @@ class ViewType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('title')
+            ->add('title', null, [
+                'label' => 'Screen title'
+            ])
             ->add('store', 'entity', [
                 'class' => 'AppShed\Extensions\StorageBundle\Entity\Store',
                 'query_builder' => function (EntityRepository $repository) {
                     return $repository->createQueryBuilder('s')->andWhere('s.app = :a')->setParameter('a', $this->app);
                 },
-                'property' => 'name'
+                'property' => 'name',
+                'label' => 'Table'
             ])
-            ->add('submit', 'submit')
+            ->add('save', 'submit')
         ;
     }
 

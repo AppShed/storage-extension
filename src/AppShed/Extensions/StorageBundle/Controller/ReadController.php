@@ -55,6 +55,10 @@ class ReadController extends StorageController
             $form->handleRequest($request);
 
             if ($form->isValid()) {
+                $this->get('session')->getFlashBag()->add(
+                    'success',
+                    'Your changes were saved'
+                );
                 $this->getDoctrine()->getManager()->flush();
             }
         }

@@ -1,7 +1,9 @@
 {% extends '::base.html.twig' %}
 
-{% block title %}New Store{% endblock %}
+{% block title %}New Table{% endblock %}
 
 {% block body %}
     {{ form(form) }}
+
+    <a href="{{ path('read_settings', appParams) }}" class="btn btn-default">Cancel</a>
 {% endblock %}

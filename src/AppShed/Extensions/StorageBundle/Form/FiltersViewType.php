@@ -32,7 +32,7 @@ class FiltersViewType extends AbstractType
                 'allow_delete' => true,
                 'by_reference' => false
             ])
-            ->add('submit', 'submit')
+            ->add('save', 'submit')
         ;
     }
 

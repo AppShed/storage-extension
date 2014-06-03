@@ -16,7 +16,7 @@ class StoreType extends AbstractType
     {
         $builder
             ->add('name')
-            ->add('submit', 'submit')
+            ->add('save', 'submit')
         ;
     }
     

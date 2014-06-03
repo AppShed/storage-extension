@@ -110,6 +110,10 @@ abstract class StorageController extends Controller
             $form->handleRequest($request);
 
             if ($form->isValid()) {
+                $this->get('session')->getFlashBag()->add(
+                    'success',
+                    'Your changes were saved'
+                );
                 $this->getDoctrine()->getManager()->flush();
             }
         }
@@ -153,6 +157,10 @@ abstract class StorageController extends Controller
                 }
 
                 $em->flush();
+                $this->get('session')->getFlashBag()->add(
+                    'success',
+                    'Your changes were saved'
+                );
                 return $this->redirect(
                     $this->generateUrl($this->getPostEditStoreRoute(), $this->getExtensionParameters($request))
                 );
@@ -160,7 +168,8 @@ abstract class StorageController extends Controller
         }
 
         return [
-            'form' => $form->createView()
+            'form' => $form->createView(),
+            'appParams' => $this->getExtensionParameters($request)
         ];
     }
 
