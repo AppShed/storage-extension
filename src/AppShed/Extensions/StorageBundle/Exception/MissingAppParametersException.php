@@ -5,6 +5,12 @@
 
 namespace AppShed\Extensions\StorageBundle\Exception;
 
-class MissingAppParametersException extends \Exception
+use Symfony\Component\HttpKernel\Exception\HttpException;
+
+class MissingAppParametersException extends HttpException
 {
+    public function __construct($message)
+    {
+        parent::__construct(400, $message);
+    }
 } 
