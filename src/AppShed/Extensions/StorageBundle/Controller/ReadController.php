@@ -9,6 +9,7 @@ use AppShed\Extensions\StorageBundle\Entity\Data;
 use AppShed\Extensions\StorageBundle\Form\FiltersViewType;
 use AppShed\Remote\Element\Item\Link;
 use AppShed\Remote\Element\Item\Text;
+use AppShed\Remote\Element\Item\Thumb;
 use AppShed\Remote\Element\Screen\Screen;
 use AppShed\Remote\HTML\Remote;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -87,19 +88,25 @@ class ReadController extends StorageController
         }
 
         $rootScreen = new Screen($view->getTitle());
+        $rootScreen->addChild(new Text($view->getMessage()));
 
         $datas = $this->getDoctrine()->getRepository('AppShedExtensionsStorageBundle:Data')->getDataForView($view);
         /** @var Data $dataO */
         foreach ($datas as $dataO) {
             $data = $dataO->getData();
-            $values = array_values($data);
-            if ($values) {
-                $dataScreen = new Screen($values[0]);
-                foreach ($values as $value) {
-                    $dataScreen->addChild(new Text($value));
+            if (count($data)) {
+                if (array_key_exists('title', $data)) {
+                    $title = $data['title'];
+                } else {
+                    $title = current($data);
                 }
 
-                $link = new Link($values[0]);
+                $dataScreen = new Screen($title);
+                foreach ($data as $key => $value) {
+                    $dataScreen->addChild(new Thumb($key, $value));
+                }
+
+                $link = new Link($title);
                 $link->setScreenLink($dataScreen);
                 $rootScreen->addChild($link);
             }

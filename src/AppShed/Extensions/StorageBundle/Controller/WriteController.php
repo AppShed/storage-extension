@@ -80,7 +80,7 @@ class WriteController extends StorageController
         $em->flush();
 
         $screen = new Screen($view->getTitle());
-        $screen->addChild(new Text("Entry saved"));
+        $screen->addChild(new Text($view->getMessage()));
         return (new Remote($screen))->getSymfonyResponse();
     }
 }

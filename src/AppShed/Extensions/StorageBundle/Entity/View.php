@@ -4,6 +4,7 @@ namespace AppShed\Extensions\StorageBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
  * View
@@ -54,8 +55,17 @@ class View
      * @var string
      *
      * @ORM\Column(name="title", type="string", length=255)
+     * @NotBlank()
      */
     private $title;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="message", type="text")
+     * @NotBlank()
+     */
+    private $message;
 
     /**
      * Get id
@@ -195,6 +205,24 @@ class View
     public function setTitle($title)
     {
         $this->title = $title;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMessage()
+    {
+        return $this->message;
+    }
+
+    /**
+     * @param string $message
+     * @return View
+     */
+    public function setMessage($message)
+    {
+        $this->message = $message;
         return $this;
     }
 }

@@ -29,6 +29,9 @@ class ViewType extends AbstractType
             ->add('title', null, [
                 'label' => 'Screen title'
             ])
+            ->add('message', null, [
+                'label' => 'Screen message'
+            ])
             ->add('store', 'entity', [
                 'class' => 'AppShed\Extensions\StorageBundle\Entity\Store',
                 'query_builder' => function (EntityRepository $repository) {
