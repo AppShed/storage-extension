@@ -54,16 +54,14 @@ class View
     /**
      * @var string
      *
-     * @ORM\Column(name="title", type="string", length=255)
-     * @NotBlank()
+     * @ORM\Column(name="title", type="string", length=255, nullable=true)
      */
     private $title;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="message", type="text")
-     * @NotBlank()
+     * @ORM\Column(name="message", type="text", nullable=true)
      */
     private $message;
 

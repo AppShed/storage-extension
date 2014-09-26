@@ -79,8 +79,8 @@ class WriteController extends StorageController
         $em->persist($dataO);
         $em->flush();
 
-        $screen = new Screen($view->getTitle());
-        $screen->addChild(new Text($view->getMessage()));
+        $screen = new Screen($view->getTitle() ?: "Thank you");
+        $screen->addChild(new Text($view->getMessage() ?: "Your entry has been saved"));
         return (new Remote($screen))->getSymfonyResponse();
     }
 }

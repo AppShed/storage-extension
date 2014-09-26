@@ -87,8 +87,10 @@ class ReadController extends StorageController
             return (new Remote($screen))->getSymfonyResponse();
         }
 
-        $rootScreen = new Screen($view->getTitle());
-        $rootScreen->addChild(new Text($view->getMessage()));
+        $rootScreen = new Screen($view->getTitle() ?: "Results");
+        if ($view->getMessage()) {
+            $rootScreen->addChild(new Text($view->getMessage()));
+        }
 
         $datas = $this->getDoctrine()->getRepository('AppShedExtensionsStorageBundle:Data')->getDataForView($view);
         /** @var Data $dataO */
@@ -97,6 +99,7 @@ class ReadController extends StorageController
             if (count($data)) {
                 if (array_key_exists('title', $data)) {
                     $title = $data['title'];
+                    unset($data['title']);
                 } else {
                     $title = current($data);
                 }
