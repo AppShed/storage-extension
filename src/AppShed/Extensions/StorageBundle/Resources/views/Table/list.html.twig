@@ -1,0 +1,24 @@
+{% extends '::base.html.twig' %}
+
+{% block title %}Table list{% endblock %}
+
+{% block body %}
+    <table class="table">
+        {% for store in stores %}
+            <tr>
+                <td>
+                    {{ store.name }}
+                </td>
+                <td>
+                    <a href="{{ path('store_view', appParams|merge({'id': store.id})) }}">View data</a>
+                </td>
+                <td>
+                    <a href="{{ path('store_view', appParams|merge({'id': store.id})) }}"><s>Download CSV</s></a>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    {#<a href="{{ path('read_store_edit', {id: 'new'}) }}">New table</a>#}
+{% endblock %}
+

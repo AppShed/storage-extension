@@ -24,7 +24,7 @@ abstract class StorageController extends Controller
      */
     protected function getApp(Request $request)
     {
-        $params = $this->getExtensionParameters($request);
+        $params = $this->getExtensionAppParameters($request);
 
         $app = $this->getDoctrine()->getRepository('AppShedExtensionsStorageBundle:App')->findOneBy(
             [
@@ -76,20 +76,38 @@ abstract class StorageController extends Controller
      */
     protected function getExtensionParameters(Request $request)
     {
-        if ($request->query->has('appId') && $request->query->has('appSecret') && $request->query->has(
-                'itemid'
-            ) && $request->query->has('identifier')
-        ) {
-            return [
-                'appId' => $request->query->get('appId'),
-                'appSecret' => $request->query->get('appSecret'),
+        if ($request->query->has('itemid') && $request->query->has('identifier')) {
+            return array_merge($this->getExtensionAppParameters($request), [
                 //This is converted to an int because of a bug in appshed where only the id is in the url in some places
                 'itemid' => str_replace(["item", "tab"], "",  $request->query->get('itemid')),
                 'identifier' => $request->query->get('identifier')
+            ]);
+        }
+        throw new MissingAppParametersException('The extension parameters are missing');
+    }
+
+    /**
+     * @param Request $request
+     * @return array
+     * @throws \AppShed\Extensions\StorageBundle\Exception\MissingAppParametersException
+     */
+    protected function getExtensionAppParameters(Request $request)
+    {
+        if ($request->query->has('appId') && $request->query->has('appSecret')) {
+            return [
+                'appId' => $request->query->get('appId'),
+                'appSecret' => $request->query->get('appSecret')
             ];
         }
         throw new MissingAppParametersException('The extension parameters are missing');
     }
+
+
+
+
+
+
+
 
     protected function settingsAction(Request $request)
     {
