@@ -1,0 +1,19 @@
+{% extends '::base.html.twig' %}
+
+{% block title %}Table "{{ store.name }}" data{% endblock %}
+
+{% block body %}
+    {% for record in data %}
+        {{ record.id }}
+    {% endfor %}
+
+
+    <div class="paginator">
+        {% for i in 1..pages %}
+            <a href="{{ path('store_view', appParams|merge({'id': store.id, 'page': i})) }}" class="page {% if i == page %}active{% endif %}">{{ i }}</a>
+        {% endfor %}
+    </div>
+
+
+
+{% endblock %}
