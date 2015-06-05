@@ -51,7 +51,7 @@ class TableController extends StorageController
             throw new NotFoundHttpException("Store with id $id not found");
         }
 
-        $perPage = 2;
+        $perPage = 100;
 
         $pages = ceil($store->getData()->count() / $perPage);
         $page = $request->query->getInt('page', 1);
@@ -63,13 +63,22 @@ class TableController extends StorageController
         }
 
         $data['store'] = $store;
-        $data['data'] = array_slice($store->getData()->getValues(), ($page - 1) * $perPage, $perPage);
+        $storeData = array_slice($store->getData()->getValues(), ($page - 1) * $perPage, $perPage);
+
+        $data['data'] = [];
+        /** @var Data $record */
+        foreach ($storeData as $record) {
+            $data['data'][] = [
+                'id' => $record->getId(),
+                'data' => $record->getData()
+            ];
+        }
+
         $data['appParams'] = $this->getExtensionAppParameters($request);
         $data['page'] = $page;
         $data['pages'] = $pages;
 
         return $this->render('@AppShedExtensionsStorage/Table/data.html.twig', $data);
-
     }
 
 

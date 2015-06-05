@@ -3,17 +3,35 @@
 {% block title %}Table "{{ store.name }}" data{% endblock %}
 
 {% block body %}
+    <table class="table store-data">
     {% for record in data %}
-        {{ record.id }}
+        <tr>
+            <td>
+                {% for field,value in record.data %}
+                  <label>{{ field }}</label>: {{ value }}<br />
+                {% endfor %}
+            </td>
+        </tr>
     {% endfor %}
+    </table>
 
+    {% if pages > 1 %}
+        <ul class="pagination">
+            {% for i in 1..pages %}
+                <li class="{% if i == page %}active{% endif %}">
+                    <a href="{{ path('store_view', appParams|merge({'id': store.id, 'page': i})) }}">{{ i }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 
-    <div class="paginator">
-        {% for i in 1..pages %}
-            <a href="{{ path('store_view', appParams|merge({'id': store.id, 'page': i})) }}" class="page {% if i == page %}active{% endif %}">{{ i }}</a>
-        {% endfor %}
-    </div>
+    <a href="{{ path('store_list', appParams) }}">Table list</a>
 
-
+    <style>
+        ul.store-data label {
+            display: inline-block;
+            min-width: 150px;
+        }
+    </style>
 
 {% endblock %}
