@@ -1,0 +1,43 @@
+{% extends '::base.html.twig' %}
+
+{% block title %}API list{% endblock %}
+
+{% block body %}
+    <a class="btn-info btn" href="{{ path('api_new', appParams) }}">New API</a>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Table</th>
+                <th>Action</th>
+                <th>Manage</th>
+                <th>Link</th>
+            </tr>
+        </thead>
+        {% for api in apis %}
+            <tr>
+                <td>
+                    {{ api.name }}
+                </td>
+                <td>
+                    {{ api.store.name }}
+                </td>
+                <td>
+                    {{ api.action }}
+                </td>
+                <td>
+                    <a href="{{ path('api_edit', appParams|merge({'uuid': api.uuid})) }}">Edit</a>
+                    |
+                    <a onclick="return confirm('Are you sure?');" href="{{ path('api_delete', appParams|merge({'uuid': api.uuid})) }}">Delete</a>
+                </td>
+                <td>
+                    <a href="{{ path('api_show', {'uuid': api.uuid}) }}">Link</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+
+{% endblock %}
+

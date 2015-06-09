@@ -4,6 +4,7 @@ namespace AppShed\Extensions\StorageBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Store
@@ -26,6 +27,7 @@ class Store
      * @var string
      *
      * @ORM\Column(name="name", type="string", length=255)
+     * @Assert\NotBlank()
      */
     private $name;
 
@@ -56,6 +58,14 @@ class Store
      * @ORM\OneToMany(targetEntity="Data", mappedBy="store", cascade={"persist", "remove"}, orphanRemoval=true)
      */
     private $data;
+
+
+    /**
+     * @var ArrayCollection
+     * @ORM\OneToMany(targetEntity="AppShed\Extensions\StorageBundle\Entity\Api", mappedBy="store", cascade={"persist", "remove"}, orphanRemoval=true)
+     */
+    private $apis;
+
 
     /**
      * Get id
@@ -119,6 +129,7 @@ class Store
     {
         $this->views = new ArrayCollection();
         $this->data = new ArrayCollection();
+        $this->apis = new ArrayCollection();
     }
 
     /**
@@ -208,5 +219,42 @@ class Store
     public function getData()
     {
         return $this->data;
+    }
+
+    /**
+     * Add apis
+     *
+     * @param \AppShed\Extensions\StorageBundle\Entity\Api $apis
+     * @return Store
+     */
+    public function addApi(\AppShed\Extensions\StorageBundle\Entity\Api $apis)
+    {
+        $this->apis[] = $apis;
+
+        return $this;
+    }
+
+    /**
+     * Remove apis
+     *
+     * @param \AppShed\Extensions\StorageBundle\Entity\Api $apis
+     */
+    public function removeApi(\AppShed\Extensions\StorageBundle\Entity\Api $apis)
+    {
+        $this->apis->removeElement($apis);
+    }
+
+    /**
+     * Get apis
+     *
+     * @return \Doctrine\Common\Collections\Collection 
+     */
+    public function getApis()
+    {
+        return $this->apis;
+    }
+
+    public function __toString() {
+        return $this->getName();
     }
 }

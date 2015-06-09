@@ -56,6 +56,13 @@ class Filter
     private $view;
 
     /**
+     * @var Api
+     *
+     * @ORM\ManyToOne(targetEntity="AppShed\Extensions\StorageBundle\Entity\Api", inversedBy="filters", cascade={"persist"})
+     */
+    private $api;
+
+    /**
      * Get id
      *
      * @return integer 
@@ -155,5 +162,28 @@ class Filter
     public function getView()
     {
         return $this->view;
+    }
+
+    /**
+     * Set api
+     *
+     * @param \AppShed\Extensions\StorageBundle\Entity\Api $api
+     * @return Filter
+     */
+    public function setApi(\AppShed\Extensions\StorageBundle\Entity\Api $api = null)
+    {
+        $this->api = $api;
+
+        return $this;
+    }
+
+    /**
+     * Get api
+     *
+     * @return \AppShed\Extensions\StorageBundle\Entity\Api 
+     */
+    public function getApi()
+    {
+        return $this->api;
     }
 }
