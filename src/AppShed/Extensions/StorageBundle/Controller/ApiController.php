@@ -7,16 +7,15 @@ namespace AppShed\Extensions\StorageBundle\Controller;
 
 use AppShed\Extensions\StorageBundle\Entity\Api;
 use AppShed\Extensions\StorageBundle\Entity\Data;
-use AppShed\Extensions\StorageBundle\Entity\Store;
+use AppShed\Extensions\StorageBundle\Entity\Field;
+use AppShed\Extensions\StorageBundle\Form\ApiEditType;
 use AppShed\Extensions\StorageBundle\Form\ApiType;
-use AppShed\Extensions\StorageBundle\Form\StoreType;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ApiController extends StorageController
@@ -57,6 +56,13 @@ class ApiController extends StorageController
             $em = $this->getDoctrine()->getManager();
             $em->persist($api);
             $em->flush();
+            $this->get('session')->getFlashBag()->add(
+                'success',
+                'New API created successfully'
+            );
+            if (in_array($api->getAction(), ['Insert'])) {
+                return $this->redirect($this->generateUrl('api_list', $appParams));
+            }
             return $this->redirect($this->generateUrl('api_edit', array_merge($appParams, ['uuid' => $api->getUuid()])));
         }
 
@@ -85,8 +91,48 @@ class ApiController extends StorageController
             throw new NotFoundHttpException("Api with uuid $uuid not found");
         }
 
+        $form = $this->createForm(new ApiEditType($api), $api, [
+            'action' => $this->generateUrl('api_edit', array_merge($appParams, ['uuid' => $api->getUuid()])),
+            'method' => 'POST'
+        ]);
+
+        switch ($api->getAction()) {
+            case Api::ACTION_UPDATE:
+            case Api::ACTION_DELETE: {
+                $form
+                    ->remove('fields')
+                    ->remove('groupField')
+                    ->remove('orderField')
+                    ->remove('orderDirection');
+            } break;
+            case Api::ACTION_INSERT: {
+                $form
+                    ->remove('fields')
+                    ->remove('filters')
+                    ->remove('groupField')
+                    ->remove('orderField')
+                    ->remove('orderDirection')
+                    ->remove('limit');
+            } break;
+        }
+
+
+        $form->handleRequest($request);
+
+        if ($form->isValid()) {
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($api);
+            $em->flush();
+            $this->get('session')->getFlashBag()->add(
+                'success',
+                'Your changes were saved'
+            );
+            return $this->redirect($this->generateUrl('api_list', $appParams));
+        }
+
         $data = [
             'api' => $api,
+            'form'   => $form->createView(),
             'appParams' => $appParams
         ];
         return $data;
@@ -126,146 +172,112 @@ class ApiController extends StorageController
      * @return JsonResponse
 
      */
-    public function showAction(Request $request, Api $api, $uuid)
+    public function showAction(Request $request, Api $api)
     {
-        $api->getQuery();
+        $store = $api->getStore()->getColumns();
+        $app = $api->getApp()->getStores();
 
+
+//        print_r($store->getColumns());
         switch ($api->getAction()) {
-            case 'Select': {
+            case Api::ACTION_SELECT: {
                 $result = $this->selectData($api);
             } break;
-            case 'Insert': {
-                $result = $this->insertData($api);
+            case Api::ACTION_INSERT: {
+                $result = $this->insertData($api, $request);
             } break;
-//            case 'Update': {
-//                $result = $this->updateData($api);
-//            } break;
-//            case 'Delete': {
-//                $result = $this->deleteData($api);
-//            } break;
+            case Api::ACTION_UPDATE: {
+                $result = $this->updateData($api, $request);
+            } break;
+            case Api::ACTION_DELETE: {
+//                $result = $this->deleteData($api, $request);
+            } break;
         }
 
-        $html = '<table>';
-        foreach ($result as $record) {
-            $html .= '<tr>';
-            foreach ($record as $col) {
-                $html .= '<td>' . $col . '</td>';
-            }
-            $html .= '</tr>';
-        }
-        $html .= '</table>';
-
-
+//        $html = '<table>';
+//        foreach ($result as $record) {
+//            $html .= '<tr>';
+//            foreach ($record as $col) {
+//                $html .= '<td>' . $col . '</td>';
+//            }
+//            $html .= '</tr>';
+//        }
+//        $html .= '</table>';
 
 //        return new Response($html);
         return new JsonResponse($result, 200);
     }
 
+    private function updateData(Api $api, Request $request) {
+        $result = [];
+
+        //GET FILTERED DATA
+        $storeData = $this->getDoctrine()->getManager()->getRepository('AppShedExtensionsStorageBundle:Data')->getDataForApi($api);
+
+        if ($api->getLimit()) {
+            $storeData = $this->limitResults($storeData, $api->getLimit());
+        }
+        $updateData = $request->request->all();
+
+        $updated = 0;
+        if (! empty($updateData)) {
+            foreach ($storeData as $k => $value) {
+                $data = $storeData[$k]->getData();
+                $newData = array_merge($data, $updateData);
+                $storeData[$k]->setData($newData);
+                $storeData[$k]->setColumns(array_keys($newData));
+            }
+
+            //Add any new columns to the store
+            $newColumns = array_diff(array_keys($updateData), $api->getStore()->getColumns());
+            $store = $api->getStore();
+            if (count($newColumns)) {
+                $store->setColumns(array_merge($api->getStore()->getColumns(), $newColumns));
+
+            }
+
+//            $api->getStore()->setColumns(array_merge($api->getStore()->getColumns(), array_keys($updateData)));
+            $this->getDoctrine()->getManager()->persist($store);
+            $this->getDoctrine()->getManager()->flush();
+            $updated = 1;
+        }
+        return ['value' => $updated];
+    }
 
     private function insertData(Api $api, Request $request) {
         $data = $request->request->all();
-        print_r($data);
+        $inserted = 0;
+        if (! empty($data)) {
+            $dataO = new Data();
+            $dataO->setStore($api->getStore());
+            $dataO->setColumns(array_keys($data));
+            $dataO->setData($data);
+            $this->getDoctrine()->getManager()->persist($dataO);
+            $this->getDoctrine()->getManager()->flush();
+            $inserted = 1;
+        }
+        return ['value' => $inserted];
     }
 
     private function selectData(Api $api) {
-        $storeData = $api->getStore()->getData()->getValues();
         $result = [];
 
-        //DECODE SQL
-        $sqlRaw = strtolower($api->getQuery());
-        $partDelimiters = ['limit', 'order by', 'group by', 'where', 'from', 'select'];
-        $sqlDecoded = [];
+        //GET FILTERED DATA
+        $storeData = $this->getDoctrine()->getManager()->getRepository('AppShedExtensionsStorageBundle:Data')->getDataForApi($api);
 
-        foreach ($partDelimiters as $delimiter) {
-            $parts = explode($delimiter, $sqlRaw);
-            $sqlRaw = $parts[0];
-            if (isset($parts[1])) {
-                $sqlDecoded[$delimiter] = trim($parts[1]);
-            }
-        }
-
-        //PREPARE RESULT COLUMNS
         $sql['select'] = [];
-        if ($sqlDecoded['select'] == '*') {
-            $sql['select'] = $api->getStore()->getColumns();
-        } else {
-            $fields = explode(',', $sqlDecoded['select']);
-            foreach ($fields as $field) {
-                $field = trim($field, ' "');
-                $sql['select'][] = $field;
-                if (strpos($field, '(')) {
-                    $aggregateParts = explode('(', $field);
-                    $sql['aggregate'] = [
-                        'function' => trim($aggregateParts[0]),
-                        'field' => trim($aggregateParts[1], ') '),
-                        'resultField' => $field
-                    ];
-                }
+        /** @var Field $field */
+        foreach ($api->getFields() as $field) {
+            $sql['select'][] = $field->getField();
+            if ($field->getAggregate()) {
+                $sql['aggregate'] = $field;
             }
         }
 
-        //PREPARE FILTERS
-        $sql['where'] = [];
-        if (isset($sqlDecoded['where'])) {
-            $allowedOperations = ['>=', '>', '<=', '<', '=']; //order of elements is important
-            $statements = explode(' and ', $sqlDecoded['where']);
-            foreach ($statements as $statement) {
-                foreach ($allowedOperations as $operation) {
-                    if (strpos($statement, $operation) !== FALSE) {
-                        $statementParts = explode($operation, $statement);
-                        $sql['where'][] = [
-                            'field' => trim($statementParts[0]),
-                            'operation' => $operation,
-                            'value' => trim($statementParts[1])
-                        ];
-                        break;
-                    }
-                }
-            }
-        }
-
-        //FILTER RESULTS
+        //SET DATA FIELDS BY SELECT STATEMENT
         /** @var Data $row */
         foreach ($storeData as $row) {
             $data = $row->getData();
-            $filterAccepted = true;
-            foreach ($sql['where'] as $where) {
-                if (! in_array($where['field'], $row->getColumns())) {
-                    $filterAccepted = false;
-                    break;
-                }
-                switch ($where['operation']) {
-                    case '=': {
-                        if ($data[$where['field']] != $where['value']) {
-                            $filterAccepted = false;
-                        }
-                    } break;
-                    case '>': {
-                        if ($data[$where['field']] <= $where['value']) {
-                            $filterAccepted = false;
-                        }
-                    } break;
-                    case '>=': {
-                        if ($data[$where['field']] < $where['value']) {
-                            $filterAccepted = false;
-                        }
-                    } break;
-                    case '<': {
-                        if ($data[$where['field']] >= $where['value']) {
-                            $filterAccepted = false;
-                        }
-                    } break;
-                    case '<=': {
-                        if ($data[$where['field']] > $where['value']) {
-                            $filterAccepted = false;
-                        }
-                    } break;
-                }
-            }
-            if (! $filterAccepted) {
-                continue;
-            }
-
             $record = [];
             foreach ($sql['select'] as $field) {
                 $record[$field] = ((isset($data[$field])) ? ($data[$field]) : (null));
@@ -274,13 +286,12 @@ class ApiController extends StorageController
         }
 
         //GROUP BY && DO AGGREGATE FUNCTIONS
-        if (isset($sqlDecoded['group by']) || isset($sql['aggregate'])) {
+        if ($api->getGroupField() || isset($sql['aggregate'])) {
             //GROUP BY
-            if (isset($sqlDecoded['group by'])) {
-                $sql['group'] = trim($sqlDecoded['group by']);
+            if ($api->getGroupField()) {
                 $resultGroup = [];
                 foreach ($result as $record) {
-                    $groupValue = $record[$sql['group']];
+                    $groupValue = $record[$api->getGroupField()];
                     if (isset($resultGroup[$groupValue])) {
                         $resultGroup[$groupValue][] = $record;
                     } else {
@@ -288,20 +299,23 @@ class ApiController extends StorageController
                     }
                 }
             } else {
-                //just same format for aggregation
+                //just same format, for aggregation
                 $resultGroup = [$result];
             }
 
             // DO AGGREGATE FUNCTIONS (if any)
+            /** @var Field $sql['aggregate']  */
             if (isset($sql['aggregate'])) {
+                $resultField = $sql['aggregate']->getField();
                 foreach ($resultGroup as $key => $resultGroupRecord) {
                     $functionInputData = [];
                     foreach ($resultGroupRecord as $record) {
-                        if ($record[$sql['aggregate']['field']] != null) {
-                            $functionInputData[] = $record[$sql['aggregate']['field']];
+                        if ($record[$sql['aggregate']->getArg()] != null) {
+                            $functionInputData[] = $record[$sql['aggregate']->getArg()];
                         }
                     }
-                    $resultGroup[$key][0][$sql['aggregate']['resultField']] = $this->aggregateFunction($sql['aggregate']['function'], $functionInputData);
+
+                    $resultGroup[$key][0][$resultField] = $this->aggregateFunction($sql['aggregate']->getAggregate(), $functionInputData);
                 }
             }
 
@@ -312,37 +326,32 @@ class ApiController extends StorageController
         }
 
         //ORDER RESULTS
-        if (isset($sqlDecoded['order by'])) {
-            $orderParts = explode(' ', $sqlDecoded['order by']);
-            $sql['order'] = [
-                'field' => $orderParts[0],
-                'direction' => ((isset($orderParts[1])) ? ($orderParts[1]) : ('asc'))
-            ];
-            if ($sql['order']['direction'] == 'asc') {
+        if ($api->getOrderField()) {
+            if ($api->getOrderDirection() == Api::ODRER_DIRECTION_ASC) {
                 //Make different functions to decrease count IF statements inside function
-                usort($result, $this->sortOrderAsc($sql['order']['field']));
+                usort($result, $this->sortOrderAsc($api->getOrderField()));
             } else {
-                usort($result, $this->sortOrderDesc($sql['order']['field']));
+                usort($result, $this->sortOrderDesc($api->getOrderField()));
             }
         }
 
         //LIMIT RESULTS
-        if (isset($sqlDecoded['limit'])) {
-            $limitParts = explode(',', $sqlDecoded['limit']);
-            if (count($limitParts) == 2) {
-                $sql['limit'] = [
-                    'offset' => trim($limitParts[0]),
-                    'count' => trim($limitParts[1])
-                ];
-            } else {
-                $sql['limit'] = [
-                    'offset' => 0,
-                    'count' => trim($limitParts[0])
-                ];
-            }
-            $result = array_slice($result, $sql['limit']['offset'], $sql['limit']['count']);
+        if ($api->getLimit()) {
+            $result = $this->limitResults($result, $api->getLimit());
         }
         return $result;
+    }
+
+    private function limitResults($result, $limit = '') {
+        $limitParts = explode(',', $limit);
+        if (count($limitParts) == 2) {
+            $offset = trim($limitParts[0]);
+            $count = trim($limitParts[1]);
+        } else {
+            $offset = 0;
+            $count = trim($limitParts[0]);
+        }
+        return array_slice($result, $offset, $count);
     }
 
     private function aggregateFunction($function, $input) {

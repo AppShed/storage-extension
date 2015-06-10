@@ -2,6 +2,7 @@
 
 namespace AppShed\Extensions\StorageBundle\Form;
 
+use AppShed\Extensions\StorageBundle\Entity\Api;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -22,16 +23,18 @@ class ApiType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+        $action = [
+            Api::ACTION_SELECT,
+            Api::ACTION_INSERT,
+            Api::ACTION_UPDATE,
+            Api::ACTION_DELETE
+        ];
+        $action = array_combine ($action, $action);
 
         $builder
             ->add('name')
             ->add('action', 'choice', [
-                'choices' => [
-                    'Select' => 'Select',
-                    'Insert' => 'Insert',
-                    'Update' => 'Update',
-                    'Delete' => 'Delete',
-                ]
+                'choices' => $action
             ])
             ->add('store', 'entity', array(
                     'class' => 'AppShedExtensionsStorageBundle:Store',
