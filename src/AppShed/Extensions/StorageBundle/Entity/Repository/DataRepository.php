@@ -26,14 +26,15 @@ class DataRepository extends EntityRepository
 
     /**
      * @param Api $api
+     * @param array $additionalFilters;
      * @return Data[]
      */
-    public function getDataForApi(Api $api)
+    public function getDataForApi(Api $api, $additionalFilters = [])
     {
-        return $this->getFilteredData($api->getStore(), $api->getFilters());
+        return $this->getFilteredData($api->getStore(), new ArrayCollection(array_merge($api->getFilters()->toArray(), $additionalFilters)));
     }
 
-    private function getFilteredData(Store $store, Collection $filters) {
+    private function getFilteredData(Store $store, ArrayCollection $filters) {
         $qb = $this->createQueryBuilder('d')
             ->andWhere('d.store = :store')->setParameter('store', $store);
 

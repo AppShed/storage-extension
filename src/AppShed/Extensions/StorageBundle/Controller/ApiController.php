@@ -8,6 +8,7 @@ namespace AppShed\Extensions\StorageBundle\Controller;
 use AppShed\Extensions\StorageBundle\Entity\Api;
 use AppShed\Extensions\StorageBundle\Entity\Data;
 use AppShed\Extensions\StorageBundle\Entity\Field;
+use AppShed\Extensions\StorageBundle\Entity\Filter;
 use AppShed\Extensions\StorageBundle\Form\ApiEditType;
 use AppShed\Extensions\StorageBundle\Form\ApiType;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
@@ -60,7 +61,7 @@ class ApiController extends StorageController
                 'success',
                 'New API created successfully'
             );
-            if (in_array($api->getAction(), ['Insert'])) {
+            if (in_array($api->getAction(), [Api::ACTION_INSERT])) {
                 return $this->redirect($this->generateUrl('api_list', $appParams));
             }
             return $this->redirect($this->generateUrl('api_edit', array_merge($appParams, ['uuid' => $api->getUuid()])));
@@ -138,7 +139,6 @@ class ApiController extends StorageController
         return $data;
     }
 
-
     /**
      * @Route("/api/{uuid}/delete", name="api_delete")
      * @param Api $api
@@ -162,11 +162,9 @@ class ApiController extends StorageController
         return $this->redirect($this->generateUrl('api_list', $appParams));
     }
 
-
     /**
      * @Route("/api/{uuid}", name="api_show")
      * @param Api $api
-     * @param $uuid
      * @ParamConverter("api", class="AppShed\Extensions\StorageBundle\Entity\Api", options={"uuid"="uuid"})
      * @Method({"GET", "POST"})
      * @return JsonResponse
@@ -174,14 +172,14 @@ class ApiController extends StorageController
      */
     public function showAction(Request $request, Api $api)
     {
-        $store = $api->getStore()->getColumns();
-        $app = $api->getApp()->getStores();
+        //WHY???
+        $storeColumns = $api->getStore()->getColumns();
+        $appId = $api->getApp()->getAppId();
 
-
-//        print_r($store->getColumns());
+        $result = [];
         switch ($api->getAction()) {
             case Api::ACTION_SELECT: {
-                $result = $this->selectData($api);
+                $result = $this->selectData($api, $request);
             } break;
             case Api::ACTION_INSERT: {
                 $result = $this->insertData($api, $request);
@@ -190,36 +188,51 @@ class ApiController extends StorageController
                 $result = $this->updateData($api, $request);
             } break;
             case Api::ACTION_DELETE: {
-//                $result = $this->deleteData($api, $request);
+                $result = $this->deleteData($api, $request);
             } break;
         }
-
-//        $html = '<table>';
-//        foreach ($result as $record) {
-//            $html .= '<tr>';
-//            foreach ($record as $col) {
-//                $html .= '<td>' . $col . '</td>';
-//            }
-//            $html .= '</tr>';
-//        }
-//        $html .= '</table>';
-
-//        return new Response($html);
         return new JsonResponse($result, 200);
     }
+
+    private function deleteData(Api $api, Request $request) {
+        $result = [];
+
+        $filters = $request->request->get('filters', '');
+        $additionalFilters = $this->getAdditionalFilters($filters);
+        //GET FILTERED DATA
+        $storeData = $this->getDoctrine()->getManager()->getRepository('AppShedExtensionsStorageBundle:Data')->getDataForApi($api, $additionalFilters);
+
+        if ($api->getLimit()) {
+            $storeData = $this->limitResults($storeData, $api->getLimit());
+        }
+
+        $executed = 0;
+        if (count($storeData)) {
+            $em = $this->getDoctrine()->getManager();
+            foreach ($storeData as $k => $value) {
+                $em->remove($storeData[$k]);
+            }
+            $executed = 1;
+            $em->flush();
+        }
+        return ['value' => $executed];
+    }
+
 
     private function updateData(Api $api, Request $request) {
         $result = [];
 
+        $filters = $request->request->get('filters', '');
+        $additionalFilters = $this->getAdditionalFilters($filters);
         //GET FILTERED DATA
-        $storeData = $this->getDoctrine()->getManager()->getRepository('AppShedExtensionsStorageBundle:Data')->getDataForApi($api);
+        $storeData = $this->getDoctrine()->getManager()->getRepository('AppShedExtensionsStorageBundle:Data')->getDataForApi($api, $additionalFilters);
 
         if ($api->getLimit()) {
             $storeData = $this->limitResults($storeData, $api->getLimit());
         }
         $updateData = $request->request->all();
 
-        $updated = 0;
+        $executed = 0;
         if (! empty($updateData)) {
             foreach ($storeData as $k => $value) {
                 $data = $storeData[$k]->getData();
@@ -236,17 +249,16 @@ class ApiController extends StorageController
 
             }
 
-//            $api->getStore()->setColumns(array_merge($api->getStore()->getColumns(), array_keys($updateData)));
             $this->getDoctrine()->getManager()->persist($store);
             $this->getDoctrine()->getManager()->flush();
-            $updated = 1;
+            $executed = 1;
         }
-        return ['value' => $updated];
+        return ['value' => $executed];
     }
 
     private function insertData(Api $api, Request $request) {
         $data = $request->request->all();
-        $inserted = 0;
+        $executed = 0;
         if (! empty($data)) {
             $dataO = new Data();
             $dataO->setStore($api->getStore());
@@ -254,19 +266,20 @@ class ApiController extends StorageController
             $dataO->setData($data);
             $this->getDoctrine()->getManager()->persist($dataO);
             $this->getDoctrine()->getManager()->flush();
-            $inserted = 1;
+            $executed = 1;
         }
-        return ['value' => $inserted];
+        return ['value' => $executed];
     }
 
-    private function selectData(Api $api) {
+    private function selectData(Api $api, Request $request) {
         $result = [];
 
+        $filters = $request->request->get('filters', '');
+        $additionalFilters = $this->getAdditionalFilters($filters);
         //GET FILTERED DATA
-        $storeData = $this->getDoctrine()->getManager()->getRepository('AppShedExtensionsStorageBundle:Data')->getDataForApi($api);
+        $storeData = $this->getDoctrine()->getManager()->getRepository('AppShedExtensionsStorageBundle:Data')->getDataForApi($api, $additionalFilters);
 
         $sql['select'] = [];
-        /** @var Field $field */
         foreach ($api->getFields() as $field) {
             $sql['select'][] = $field->getField();
             if ($field->getAggregate()) {
@@ -314,7 +327,6 @@ class ApiController extends StorageController
                             $functionInputData[] = $record[$sql['aggregate']->getArg()];
                         }
                     }
-
                     $resultGroup[$key][0][$resultField] = $this->aggregateFunction($sql['aggregate']->getAggregate(), $functionInputData);
                 }
             }
@@ -340,6 +352,28 @@ class ApiController extends StorageController
             $result = $this->limitResults($result, $api->getLimit());
         }
         return $result;
+    }
+
+    private function getAdditionalFilters($filters = '') {
+        $additionalFilters = [];
+        if ($filters) {
+            $allowedOperations = ['>=', '>', '<=', '<', '!=', '=']; //order of elements is important
+            $statements = explode(' and ', strtolower($filters));
+            foreach ($statements as $statement) {
+                foreach ($allowedOperations as $operation) {
+                    if (strpos($statement, $operation) !== FALSE) {
+                        $statementParts = explode($operation, $statement);
+                        $filter = new Filter();
+                        $filter->setCol(trim($statementParts[0]));
+                        $filter->setType($operation);
+                        $filter->setValue(trim($statementParts[1]));
+                        $additionalFilters[] = $filter;
+                    }
+                }
+            }
+        }
+        return $additionalFilters;
+
     }
 
     private function limitResults($result, $limit = '') {
