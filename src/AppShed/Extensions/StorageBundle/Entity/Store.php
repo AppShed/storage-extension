@@ -130,6 +130,7 @@ class Store
         $this->views = new ArrayCollection();
         $this->data = new ArrayCollection();
         $this->apis = new ArrayCollection();
+        $this->columns = [];
     }
 
     /**

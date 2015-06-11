@@ -172,10 +172,6 @@ class ApiController extends StorageController
      */
     public function showAction(Request $request, Api $api)
     {
-        //WHY???
-        $storeColumns = $api->getStore()->getColumns();
-        $appId = $api->getApp()->getAppId();
-
         $result = [];
         switch ($api->getAction()) {
             case Api::ACTION_SELECT: {
@@ -221,6 +217,10 @@ class ApiController extends StorageController
 
     private function updateData(Api $api, Request $request) {
         $result = [];
+        //get this data here (before getDataForApi()) because $em->clear() make bad
+        $storeColumns = $api->getStore()->getColumns();
+        $appId = $api->getApp()->getAppId();
+
 
         $filters = $request->request->get('filters', '');
         $additionalFilters = $this->getAdditionalFilters($filters);
@@ -241,22 +241,25 @@ class ApiController extends StorageController
                 $storeData[$k]->setColumns(array_keys($newData));
             }
 
-            //Add any new columns to the store
-            $newColumns = array_diff(array_keys($updateData), $api->getStore()->getColumns());
             $store = $api->getStore();
+            $em = $this->getDoctrine()->getManager();
+            //Add any new columns to the store
+            $newColumns = array_diff(array_keys($updateData), $storeColumns);
             if (count($newColumns)) {
-                $store->setColumns(array_merge($api->getStore()->getColumns(), $newColumns));
-
+                $store->setColumns(array_merge($storeColumns, $newColumns));
             }
-
-            $this->getDoctrine()->getManager()->persist($store);
-            $this->getDoctrine()->getManager()->flush();
+            $em->merge($store);
+            $em->flush();
             $executed = 1;
         }
         return ['value' => $executed];
     }
 
     private function insertData(Api $api, Request $request) {
+        //get this data here (before getDataForApi()) because $em->clear() make bad
+        $storeColumns = $api->getStore()->getColumns();
+        $appId = $api->getApp()->getAppId();
+
         $data = $request->request->all();
         $executed = 0;
         if (! empty($data)) {
@@ -266,7 +269,18 @@ class ApiController extends StorageController
             $dataO->setData($data);
             $this->getDoctrine()->getManager()->persist($dataO);
             $this->getDoctrine()->getManager()->flush();
+
+            $store = $api->getStore();
+            $em = $this->getDoctrine()->getManager();
+            //Add any new columns to the store
+            $newColumns = array_diff(array_keys($data), $storeColumns);
+            if (count($newColumns)) {
+                $store->setColumns(array_merge($storeColumns, $newColumns));
+            }
+            $em->merge($store);
+            $em->flush();
             $executed = 1;
+
         }
         return ['value' => $executed];
     }
