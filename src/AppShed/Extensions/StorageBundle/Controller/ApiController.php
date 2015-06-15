@@ -64,7 +64,7 @@ class ApiController extends StorageController
                 'success',
                 'New API created successfully'
             );
-            if (in_array($api->getAction(), [Api::ACTION_INSERT])) {
+            if ($api->getAction() == Api::ACTION_INSERT) {
                 return $this->redirect($this->generateUrl('api_list', $appParams));
             }
             return $this->redirect($this->generateUrl('api_edit', array_merge($appParams, ['uuid' => $api->getUuid()])));
@@ -100,7 +100,6 @@ class ApiController extends StorageController
         $form->handleRequest($request);
         if ($form->isValid()) {
             $em = $this->getDoctrine()->getManager();
-            $em->persist($api);
             $em->flush();
             $this->get('session')->getFlashBag()->add(
                 'success',
@@ -109,12 +108,11 @@ class ApiController extends StorageController
             return $this->redirect($this->generateUrl('api_list', $appParams));
         }
 
-        $data = [
+        return [
             'api' => $api,
             'form'   => $form->createView(),
             'appParams' => $appParams
         ];
-        return $data;
     }
 
     /**
@@ -135,284 +133,6 @@ class ApiController extends StorageController
         $em->flush();
 
         return $this->redirect($this->generateUrl('api_list', $appParams));
-    }
-
-    /**
-     * @Route("/api/{uuid}", name="api_show")
-     * @ParamConverter("api", class="AppShed\Extensions\StorageBundle\Entity\Api", options={"uuid"="uuid"})
-     * @Method({"GET", "POST"})
-     */
-    public function showAction(Request $request, Api $api)
-    {
-        if (in_array($api->getAction(), [Api::ACTION_INSERT, Api::ACTION_UPDATE, Api::ACTION_DELETE]) && $request->getMethod() != 'POST') {
-            throw new MethodNotAllowedException(['POST']);
-        }
-
-        $result = [];
-        switch ($api->getAction()) {
-            case Api::ACTION_SELECT: {
-                $result = $this->selectData($api, $request);
-            } break;
-            case Api::ACTION_INSERT: {
-                $result = $this->insertData($api, $request);
-            } break;
-            case Api::ACTION_UPDATE: {
-                $result = $this->updateData($api, $request);
-            } break;
-            case Api::ACTION_DELETE: {
-                $result = $this->deleteData($api, $request);
-            } break;
-        }
-        return new JsonResponse($result, 200);
-    }
-
-
-
-
-    private function deleteData(Api $api, Request $request) {
-        $result = [];
-
-        $filters = $request->request->get('filters', '');
-        $additionalFilters = $this->getAdditionalFilters($filters);
-        //GET FILTERED DATA
-        $storeData = $this->getDoctrine()->getManager()->getRepository('AppShedExtensionsStorageBundle:Data')->getDataForApi($api, $additionalFilters);
-
-        if ($api->getLimit()) {
-            $storeData = $this->limitResults($storeData, $api->getLimit());
-        }
-
-        $executed = 0;
-        if (count($storeData)) {
-            $em = $this->getDoctrine()->getManager();
-            foreach ($storeData as $k => $value) {
-                $em->remove($storeData[$k]);
-            }
-            $executed = 1;
-            $em->flush();
-        }
-        return ['value' => $executed];
-    }
-
-
-    private function updateData(Api $api, Request $request) {
-        $result = [];
-        //get this data here (before getDataForApi()) because $em->clear() make bad
-        $storeColumns = $api->getStore()->getColumns();
-        $appId = $api->getApp()->getAppId();
-
-
-        $filters = $request->request->get('filters', '');
-        $additionalFilters = $this->getAdditionalFilters($filters);
-        //GET FILTERED DATA
-        $storeData = $this->getDoctrine()->getManager()->getRepository('AppShedExtensionsStorageBundle:Data')->getDataForApi($api, $additionalFilters);
-
-        if ($api->getLimit()) {
-            $storeData = $this->limitResults($storeData, $api->getLimit());
-        }
-        $updateData = $request->request->all();
-
-        $executed = 0;
-        if (! empty($updateData)) {
-            foreach ($storeData as $k => $value) {
-                $data = $storeData[$k]->getData();
-                $newData = array_merge($data, $updateData);
-                $storeData[$k]->setData($newData);
-                $storeData[$k]->setColumns(array_keys($newData));
-            }
-
-            $store = $api->getStore();
-            $em = $this->getDoctrine()->getManager();
-            //Add any new columns to the store
-            $newColumns = array_diff(array_keys($updateData), $storeColumns);
-            if (count($newColumns)) {
-                $store->setColumns(array_merge($storeColumns, $newColumns));
-            }
-            $em->merge($store);
-            $em->flush();
-            $executed = 1;
-        }
-        return ['value' => $executed];
-    }
-
-    private function insertData(Api $api, Request $request) {
-        //get this data here (before getDataForApi()) because $em->clear() make bad
-        $storeColumns = $api->getStore()->getColumns();
-        $appId = $api->getApp()->getAppId();
-
-        $data = $request->request->all();
-        $executed = 0;
-        if (! empty($data)) {
-            $dataO = new Data();
-            $dataO->setStore($api->getStore());
-            $dataO->setColumns(array_keys($data));
-            $dataO->setData($data);
-            $this->getDoctrine()->getManager()->persist($dataO);
-            $this->getDoctrine()->getManager()->flush();
-
-            $store = $api->getStore();
-            $em = $this->getDoctrine()->getManager();
-            //Add any new columns to the store
-            $newColumns = array_diff(array_keys($data), $storeColumns);
-            if (count($newColumns)) {
-                $store->setColumns(array_merge($storeColumns, $newColumns));
-            }
-            $em->merge($store);
-            $em->flush();
-            $executed = 1;
-
-        }
-        return ['value' => $executed];
-    }
-
-    private function selectData(Api $api, Request $request) {
-        $result = [];
-
-        $filters = $request->request->get('filters', '');
-        $additionalFilters = $this->getAdditionalFilters($filters);
-        //GET FILTERED DATA
-        $storeData = $this->getDoctrine()->getManager()->getRepository('AppShedExtensionsStorageBundle:Data')->getDataForApi($api, $additionalFilters);
-
-        $sql['select'] = [];
-        foreach ($api->getFields() as $field) {
-            $sql['select'][] = $field->getField();
-            if ($field->getAggregate()) {
-                $sql['aggregate'] = $field;
-            }
-        }
-
-        //SET DATA FIELDS BY SELECT STATEMENT
-        /** @var Data $row */
-        foreach ($storeData as $row) {
-            $data = $row->getData();
-            $record = [];
-            foreach ($sql['select'] as $field) {
-                $record[$field] = ((isset($data[$field])) ? ($data[$field]) : (null));
-            }
-            $result[] = $record;
-        }
-
-        //GROUP BY && DO AGGREGATE FUNCTIONS
-        if ($api->getGroupField() || isset($sql['aggregate'])) {
-            //GROUP BY
-            if ($api->getGroupField()) {
-                $resultGroup = [];
-                foreach ($result as $record) {
-                    $groupValue = $record[$api->getGroupField()];
-                    if (isset($resultGroup[$groupValue])) {
-                        $resultGroup[$groupValue][] = $record;
-                    } else {
-                        $resultGroup[$groupValue] = [$record];
-                    }
-                }
-            } else {
-                //just same format, for aggregation
-                $resultGroup = [$result];
-            }
-
-            // DO AGGREGATE FUNCTIONS (if any)
-            /** @var Field $sql['aggregate']  */
-            if (isset($sql['aggregate'])) {
-                $resultField = $sql['aggregate']->getField();
-                foreach ($resultGroup as $key => $resultGroupRecord) {
-                    $functionInputData = [];
-                    foreach ($resultGroupRecord as $record) {
-                        if ($record[$sql['aggregate']->getArg()] != null) {
-                            $functionInputData[] = $record[$sql['aggregate']->getArg()];
-                        }
-                    }
-                    $resultGroup[$key][0][$resultField] = $this->aggregateFunction($sql['aggregate']->getAggregate(), $functionInputData);
-                }
-            }
-
-            $result = [];
-            foreach ($resultGroup as $key => $resultGroupRecord) {
-                $result[] = $resultGroupRecord[0];
-            }
-        }
-
-        //ORDER RESULTS
-        if ($api->getOrderField()) {
-            if ($api->getOrderDirection() == Api::ODRER_DIRECTION_ASC) {
-                //Make different functions to decrease count IF statements inside function
-                usort($result, $this->sortOrderAsc($api->getOrderField()));
-            } else {
-                usort($result, $this->sortOrderDesc($api->getOrderField()));
-            }
-        }
-
-        //LIMIT RESULTS
-        if ($api->getLimit()) {
-            $result = $this->limitResults($result, $api->getLimit());
-        }
-        return $result;
-    }
-
-    private function getAdditionalFilters($filters = '') {
-        $additionalFilters = [];
-        if ($filters) {
-            $allowedOperations = ['>=', '>', '<=', '<', '!=', '=']; //order of elements is important
-            $statements = explode(' and ', strtolower($filters));
-            foreach ($statements as $statement) {
-                foreach ($allowedOperations as $operation) {
-                    if (strpos($statement, $operation) !== FALSE) {
-                        $statementParts = explode($operation, $statement);
-                        $filter = new Filter();
-                        $filter->setCol(trim($statementParts[0]));
-                        $filter->setType($operation);
-                        $filter->setValue(trim($statementParts[1]));
-                        $additionalFilters[] = $filter;
-                    }
-                }
-            }
-        }
-        return $additionalFilters;
-    }
-
-    private function limitResults($result, $limit = '') {
-        $limitParts = explode(',', $limit);
-        if (count($limitParts) == 2) {
-            $offset = trim($limitParts[0]);
-            $count = trim($limitParts[1]);
-        } else {
-            $offset = 0;
-            $count = trim($limitParts[0]);
-        }
-        return array_slice($result, $offset, $count);
-    }
-
-    private function aggregateFunction($function, $input) {
-        switch ($function) {
-            case 'count': {
-                return count($input);
-            } break;
-            case 'sum': {
-                return array_sum($input);
-            } break;
-            case 'avg': {
-                return array_sum($input) / count($input);
-            } break;
-            case 'max': {
-                return max($input);
-            } break;
-            case 'min': {
-                return min($input);
-            } break;
-            default: {
-                throw new NotImplementedException("Aggregate function '$function' not  implemented");
-            }
-        }
-    }
-
-    private function sortOrderAsc($field) {
-        return function ($a, $b) use ($field) {
-            return $a[$field] > $b[$field];
-        };
-    }
-
-    private function sortOrderDesc($field) {
-        return function ($a, $b) use ($field) {
-            return $a[$field] < $b[$field];
-        };
     }
 
     protected function getPostEditStoreRoute() {

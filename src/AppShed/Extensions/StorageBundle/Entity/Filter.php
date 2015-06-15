@@ -13,6 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Filter
 {
     const FILTER_EQUALS = '=';
+    const FILTER_NOT_EQUALS = '!=';
     const FILTER_GREATER_THAN = '>';
     const FILTER_GREATER_THAN_OR_EQUALS = '>=';
     const FILTER_LESS_THAN = '<';
