@@ -22,7 +22,9 @@
         "incenteev/composer-parameter-handler": "~2.0",
         "twbs/bootstrap": "v3.1.1",
         "frameworks/jquery": "~2.1.0",
-        "appshed/extension-api": "~2.0.2"
+        "appshed/extension-api": "~2.0.2",
+        "ramsey/uuid": "2.8.0",
+        "nelmio/cors-bundle": "^1.4"
     },
     "scripts": {
         "post-install-cmd": [

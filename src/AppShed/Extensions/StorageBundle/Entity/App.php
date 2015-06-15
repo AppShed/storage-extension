@@ -38,10 +38,15 @@ class App
 
     /**
      * @var ArrayCollection
-     *
      * @ORM\OneToMany(targetEntity="Store", mappedBy="app", cascade={"persist", "remove"}, orphanRemoval=true)
      */
     private $stores;
+
+    /**
+     * @var ArrayCollection
+     * @ORM\OneToMany(targetEntity="AppShed\Extensions\StorageBundle\Entity\Api", mappedBy="app", cascade={"persist", "remove"}, orphanRemoval=true)
+     */
+    private $apis;
 
     /**
      * Get id
@@ -104,6 +109,7 @@ class App
     public function __construct()
     {
         $this->stores = new ArrayCollection();
+        $this->apis = new ArrayCollection();
     }
 
     /**
@@ -137,5 +143,38 @@ class App
     public function getStores()
     {
         return $this->stores;
+    }
+
+    /**
+     * Add apis
+     *
+     * @param \AppShed\Extensions\StorageBundle\Entity\Api $apis
+     * @return App
+     */
+    public function addApi(\AppShed\Extensions\StorageBundle\Entity\Api $apis)
+    {
+        $this->apis[] = $apis;
+
+        return $this;
+    }
+
+    /**
+     * Remove apis
+     *
+     * @param \AppShed\Extensions\StorageBundle\Entity\Api $apis
+     */
+    public function removeApi(\AppShed\Extensions\StorageBundle\Entity\Api $apis)
+    {
+        $this->apis->removeElement($apis);
+    }
+
+    /**
+     * Get apis
+     *
+     * @return \Doctrine\Common\Collections\Collection 
+     */
+    public function getApis()
+    {
+        return $this->apis;
     }
 }

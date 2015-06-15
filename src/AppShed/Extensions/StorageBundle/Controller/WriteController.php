@@ -38,14 +38,10 @@ class WriteController extends StorageController
 
     /**
      * @Route("/write", name="write")
-     * @Method({"GET", "POST", "OPTIONS"})
+     * @Method({"GET", "POST"})
      */
     public function appshedAction(Request $request)
     {
-        if (Remote::isOptionsRequest()) {
-            return Remote::getCORSSymfonyResponse();
-        }
-
         $view = $this->getView($request);
         if (!$view->getId()) {
             $screen = new Screen("Error");

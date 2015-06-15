@@ -9,12 +9,11 @@
         <parameter key="app_shed_extensions_storage.example.class">AppShed\Extensions\StorageBundle\Example</parameter>
     </parameters>
 
+    -->
     <services>
-        <service id="app_shed_extensions_storage.example" class="%app_shed_extensions_storage.example.class%">
-            <argument type="service" id="service_id" />
-            <argument>plain_value</argument>
-            <argument>%parameter_name%</argument>
+        <service id="acme.exception_listener" class="AppShed\Extensions\StorageBundle\Listener\ExceptionListener">
+            <argument type="service" id="templating" />
+            <tag name="kernel.event_listener" event="kernel.exception" method="onKernelException" />
         </service>
     </services>
-    -->
 </container>

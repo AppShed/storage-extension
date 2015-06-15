@@ -3,8 +3,12 @@
 
 namespace AppShed\Extensions\StorageBundle\Entity\Repository;
 
+use AppShed\Extensions\StorageBundle\Entity\Api;
 use AppShed\Extensions\StorageBundle\Entity\Data;
 use AppShed\Extensions\StorageBundle\Entity\Filter;
+use AppShed\Extensions\StorageBundle\Entity\Store;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityRepository;
 use AppShed\Extensions\StorageBundle\Entity\View;
 use Doctrine\ORM\Query\Expr;
@@ -17,11 +21,26 @@ class DataRepository extends EntityRepository
      */
     public function getDataForView(View $view)
     {
+        return $this->getFilteredData($view->getStore(), $view->getFilters());
+    }
 
+    /**
+     * @param Api $api
+     * @param array $additionalFilters;
+     * @return Data[]
+     */
+    public function getDataForApi(Api $api, $additionalFilters = [])
+    {
+        return $this->getFilteredData($api->getStore(), new ArrayCollection(array_merge($api->getFilters()->toArray(), $additionalFilters)));
+    }
+
+    private function getFilteredData(Store $store, ArrayCollection $filters) {
         $qb = $this->createQueryBuilder('d')
-            ->andWhere('d.store = :store')->setParameter('store', $view->getStore());
+            ->andWhere('d.store = :store')->setParameter('store', $store);
 
-        if ($view->getFilters()->count()) {
+        $filter = $filters->getValues();
+
+        if ($filters->count()) {
             $filteredData = [];
 
             $em = $this->getEntityManager();
@@ -33,16 +52,13 @@ class DataRepository extends EntityRepository
                 $dataO = $row[0];
 
                 $data = $dataO->getData();
-
                 $ok = true;
-
                 /** @var Filter $filter */
-                foreach ($view->getFilters() as $filter) {
+                foreach ($filters as $filter) {
                     if (!isset($data[$filter->getCol()])) {
                         $ok = false;
                         break;
                     }
-
                     switch ($filter->getType()) {
                         case Filter::FILTER_EQUALS:
                             if (!($data[$filter->getCol()] == $filter->getValue())) {
@@ -76,7 +92,6 @@ class DataRepository extends EntityRepository
                             break;
                     }
                 }
-
                 if ($ok) {
                     $filteredData[] = $dataO;
                 }
@@ -92,4 +107,4 @@ class DataRepository extends EntityRepository
             return $qb->getQuery()->getResult();
         }
     }
-} 
+}

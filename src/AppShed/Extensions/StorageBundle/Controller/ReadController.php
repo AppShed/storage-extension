@@ -76,10 +76,6 @@ class ReadController extends StorageController
      */
     public function appshedAction(Request $request)
     {
-        if (Remote::isOptionsRequest()) {
-            return Remote::getCORSSymfonyResponse();
-        }
-
         $view = $this->getView($request);
         if (!$view->getId()) {
             $screen = new Screen("Error");

@@ -113,9 +113,9 @@ class View
      */
     public function addFilter(Filter $filters)
     {
-        $this->filters[] = $filters;
-
         $filters->setView($this);
+
+        $this->filters[] = $filters;
 
         return $this;
     }
