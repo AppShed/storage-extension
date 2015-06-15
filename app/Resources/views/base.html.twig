@@ -29,7 +29,7 @@
     </main>
 </div>
 {% block javascripts %}
-    {% javascripts '@storage_js' filter='?uglifyjs' %}
+    {% javascripts '@storage_js' filter='?uglifyjs2' %}
         <script src="{{ asset_url }}"></script>
     {% endjavascripts %}
 {% endblock %}
