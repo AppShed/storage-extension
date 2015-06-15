@@ -1,0 +1,7 @@
+services:
+    appshed_extensions_storage_bundle.exception_listener:
+        class: AppShed\Extensions\StorageBundle\Listener\ExceptionListener
+        arguments:
+            - @templating
+        tags:
+            - { name: kernel.event_listener, event: kernel.exception, method: onKernelException }
