@@ -45,7 +45,7 @@ assetic:
             apply_to:   "\.less$"
         uglifycss:
             bin: %uglifycss_path%
-        uglifyjs2:
+        uglifyjs:
             bin: %uglifyjs_path%
     assets:
         bootstrap_css:
