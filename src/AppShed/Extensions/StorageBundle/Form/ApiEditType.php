@@ -26,41 +26,54 @@ class ApiEditType extends AbstractType
         $fields = $this->api->getStore()->getColumns();
         $fields = array_combine ($fields, $fields);
 
-
-
-
+        switch ($this->api->getAction()) {
+            case Api::ACTION_SELECT: {
+                $builder
+                    ->add('fields', 'collection', [
+                        'type' => new FieldType($this->api->getStore()),
+                        'allow_add' => true,
+                        'allow_delete' => true,
+                        'by_reference' => false
+                    ])
+                    ->add('filters', 'collection', [
+                        'type' => new FilterType($this->api->getStore()),
+                        'allow_add' => true,
+                        'allow_delete' => true,
+                        'by_reference' => false
+                    ])
+                    ->add('groupField', 'choice', [
+                        'required' => false,
+                        'choices' => $fields
+                    ])
+                    ->add('orderField', 'choice', [
+                        'required' => false,
+                        'choices' => $fields
+                    ])
+                    ->add('orderDirection', 'choice', [
+                        'required' => false,
+                        'choices' => [
+                            Api::ODRER_DIRECTION_ASC => Api::ODRER_DIRECTION_ASC,
+                            Api::ODRER_DIRECTION_DESC => Api::ODRER_DIRECTION_DESC
+                        ]
+                    ])
+                    ->add('limit');
+            } break;
+            case Api::ACTION_UPDATE:
+            case Api::ACTION_DELETE: {
+            $builder
+                ->add('filters', 'collection', [
+                    'type' => new FilterType($this->api->getStore()),
+                    'allow_add' => true,
+                    'allow_delete' => true,
+                    'by_reference' => false
+                ])
+                ->add('limit');
+            } break;
+            case Api::ACTION_INSERT: {
+                //nothing add
+            } break;
+        }
         $builder
-//            ->add('select')
-            ->add('fields', 'collection', [
-                'type' => new FieldType($this->api->getStore()),
-                'allow_add' => true,
-                'allow_delete' => true,
-                'by_reference' => false
-            ])
-
-            ->add('filters', 'collection', [
-                'type' => new FilterType($this->api->getStore()),
-                'allow_add' => true,
-                'allow_delete' => true,
-                'by_reference' => false
-            ])
-
-            ->add('groupField', 'choice', [
-                'required' => false,
-                'choices' => $fields
-            ])
-            ->add('orderField', 'choice', [
-                'required' => false,
-                'choices' => $fields
-            ])
-            ->add('orderDirection', 'choice', [
-                'required' => false,
-                'choices' => [
-                    Api::ODRER_DIRECTION_ASC => Api::ODRER_DIRECTION_ASC,
-                    Api::ODRER_DIRECTION_DESC => Api::ODRER_DIRECTION_DESC
-                ]
-            ])
-            ->add('limit')
             ->add('save', 'submit')
         ;
     }

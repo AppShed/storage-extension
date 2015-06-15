@@ -18,6 +18,8 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Intl\Exception\NotImplementedException;
+use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 
 class ApiController extends StorageController
 {
@@ -29,9 +31,10 @@ class ApiController extends StorageController
     public function listAction(Request $request)
     {
         $app = $this->getApp($request);
-        $data['apis'] = $this->getDoctrine()->getRepository('AppShedExtensionsStorageBundle:Api')->findBy(['app' => $app]);
-        $data['appParams'] = $this->getExtensionAppParameters($request);
-        return $data;
+        return [
+            'apis' => $this->getDoctrine()->getRepository('AppShedExtensionsStorageBundle:Api')->findBy(['app' => $app]),
+            'appParams' => $this->getExtensionAppParameters($request)
+        ];
     }
 
     /**
@@ -67,22 +70,19 @@ class ApiController extends StorageController
             return $this->redirect($this->generateUrl('api_edit', array_merge($appParams, ['uuid' => $api->getUuid()])));
         }
 
-        $data = [
+        return [
             'api' => $api,
             'form'   => $form->createView(),
             'appParams' => $appParams
         ];
-        return $data;
     }
 
     /**
      * @Route("/api/{uuid}/edit", name="api_edit")
-     * @param Api $api
-     * @param $uuid
-     * @ParamConverter("api", class="AppShed\Extensions\StorageBundle\Entity\Api", options={"uuid"="uuid"})
      * @Method({"GET", "POST"})
-     * @return array
+     * @ParamConverter("api", class="AppShed\Extensions\StorageBundle\Entity\Api", options={"uuid"="uuid"})
      * @Template()
+
      */
     public function editAction(Request $request, Api $api, $uuid)
     {
@@ -97,29 +97,7 @@ class ApiController extends StorageController
             'method' => 'POST'
         ]);
 
-        switch ($api->getAction()) {
-            case Api::ACTION_UPDATE:
-            case Api::ACTION_DELETE: {
-                $form
-                    ->remove('fields')
-                    ->remove('groupField')
-                    ->remove('orderField')
-                    ->remove('orderDirection');
-            } break;
-            case Api::ACTION_INSERT: {
-                $form
-                    ->remove('fields')
-                    ->remove('filters')
-                    ->remove('groupField')
-                    ->remove('orderField')
-                    ->remove('orderDirection')
-                    ->remove('limit');
-            } break;
-        }
-
-
         $form->handleRequest($request);
-
         if ($form->isValid()) {
             $em = $this->getDoctrine()->getManager();
             $em->persist($api);
@@ -141,11 +119,8 @@ class ApiController extends StorageController
 
     /**
      * @Route("/api/{uuid}/delete", name="api_delete")
-     * @param Api $api
-     * @param $uuid
      * @ParamConverter("api", class="AppShed\Extensions\StorageBundle\Entity\Api", options={"uuid"="uuid"})
-     * @Method({"GET", "POST"})
-     * @return array
+     * @Method({"POST"})
      */
     public function deleteAction(Request $request, Api $api, $uuid)
     {
@@ -164,14 +139,15 @@ class ApiController extends StorageController
 
     /**
      * @Route("/api/{uuid}", name="api_show")
-     * @param Api $api
      * @ParamConverter("api", class="AppShed\Extensions\StorageBundle\Entity\Api", options={"uuid"="uuid"})
      * @Method({"GET", "POST"})
-     * @return JsonResponse
-
      */
     public function showAction(Request $request, Api $api)
     {
+        if (in_array($api->getAction(), [Api::ACTION_INSERT, Api::ACTION_UPDATE, Api::ACTION_DELETE]) && $request->getMethod() != 'POST') {
+            throw new MethodNotAllowedException(['POST']);
+        }
+
         $result = [];
         switch ($api->getAction()) {
             case Api::ACTION_SELECT: {
@@ -189,6 +165,9 @@ class ApiController extends StorageController
         }
         return new JsonResponse($result, 200);
     }
+
+
+
 
     private function deleteData(Api $api, Request $request) {
         $result = [];
@@ -387,7 +366,6 @@ class ApiController extends StorageController
             }
         }
         return $additionalFilters;
-
     }
 
     private function limitResults($result, $limit = '') {
@@ -420,7 +398,7 @@ class ApiController extends StorageController
                 return min($input);
             } break;
             default: {
-                return 'unknown function';
+                throw new NotImplementedException("Aggregate function '$function' not  implemented");
             }
         }
     }
@@ -440,5 +418,4 @@ class ApiController extends StorageController
     protected function getPostEditStoreRoute() {
         return 'show_api';
     }
-
 }

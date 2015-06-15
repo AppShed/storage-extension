@@ -32,7 +32,6 @@ class TableController extends StorageController
 
     /**
      * @Route("/table/{id}", requirements={"id": "\d+"}, name="store_view")
-     * @param $id
      * @Method({"GET"})
      * @Template()
      * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException

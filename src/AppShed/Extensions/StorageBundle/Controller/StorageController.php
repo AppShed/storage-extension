@@ -102,13 +102,6 @@ abstract class StorageController extends Controller
         throw new MissingAppParametersException('The extension parameters are missing');
     }
 
-
-
-
-
-
-
-
     protected function settingsAction(Request $request)
     {
         $app = $this->getApp($request);
