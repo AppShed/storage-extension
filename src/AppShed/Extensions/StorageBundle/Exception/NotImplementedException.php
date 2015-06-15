@@ -6,7 +6,7 @@
 namespace AppShed\Extensions\StorageBundle\Exception;
 
 
-class MissingDataException extends JsonHttpException
+class NotImplementedException extends JsonHttpException
 {
     public function __construct($message)
     {

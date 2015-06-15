@@ -10,6 +10,7 @@ use AppShed\Extensions\StorageBundle\Entity\Data;
 use AppShed\Extensions\StorageBundle\Entity\Field;
 use AppShed\Extensions\StorageBundle\Entity\Filter;
 use AppShed\Extensions\StorageBundle\Exception\MissingDataException;
+use AppShed\Extensions\StorageBundle\Exception\NotImplementedException;
 use AppShed\Extensions\StorageBundle\Form\ApiEditType;
 use AppShed\Extensions\StorageBundle\Form\ApiType;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
@@ -20,7 +21,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Intl\Exception\NotImplementedException;
+
 use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 
 class ApiExecuteController extends Controller
@@ -289,6 +290,7 @@ class ApiExecuteController extends Controller
                 return min($input);
             default:
                 throw new NotImplementedException("Aggregate function '$function' not  implemented");
+
         }
     }
 
