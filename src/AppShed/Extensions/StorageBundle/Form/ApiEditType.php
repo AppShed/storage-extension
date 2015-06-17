@@ -84,8 +84,7 @@ class ApiEditType extends AbstractType
     public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
         $resolver->setDefaults(array(
-            'data_class' => 'AppShed\Extensions\StorageBundle\Entity\Api',
-            'csrf_protection' => false
+            'data_class' => 'AppShed\Extensions\StorageBundle\Entity\Api'
         ));
 
     }
