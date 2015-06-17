@@ -26,7 +26,8 @@ class StoreType extends AbstractType
     public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
         $resolver->setDefaults(array(
-            'data_class' => 'AppShed\Extensions\StorageBundle\Entity\Store'
+            'data_class' => 'AppShed\Extensions\StorageBundle\Entity\Store',
+            'csrf_protection' => false
         ));
     }
 

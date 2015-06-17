@@ -50,7 +50,8 @@ class ViewType extends AbstractType
     public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
         $resolver->setDefaults(array(
-            'data_class' => 'AppShed\Extensions\StorageBundle\Entity\View'
+            'data_class' => 'AppShed\Extensions\StorageBundle\Entity\View',
+            'csrf_protection' => false
         ));
     }
 

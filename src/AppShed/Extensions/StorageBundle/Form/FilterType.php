@@ -49,7 +49,8 @@ class FilterType extends AbstractType
     public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
         $resolver->setDefaults(array(
-            'data_class' => 'AppShed\Extensions\StorageBundle\Entity\Filter'
+            'data_class' => 'AppShed\Extensions\StorageBundle\Entity\Filter',
+            'csrf_protection' => false
         ));
     }
 
