@@ -8,10 +8,11 @@ use AppShed\Extensions\StorageBundle\Entity\Data;
 use AppShed\Extensions\StorageBundle\Entity\Filter;
 use AppShed\Extensions\StorageBundle\Entity\Store;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityRepository;
 use AppShed\Extensions\StorageBundle\Entity\View;
+use Doctrine\ORM\PersistentCollection;
 use Doctrine\ORM\Query\Expr;
+use Symfony\Component\Validator\Constraints\Collection;
 
 class DataRepository extends EntityRepository
 {
@@ -34,7 +35,7 @@ class DataRepository extends EntityRepository
         return $this->getFilteredData($api->getStore(), new ArrayCollection(array_merge($api->getFilters()->toArray(), $additionalFilters)));
     }
 
-    private function getFilteredData(Store $store, ArrayCollection $filters) {
+    private function getFilteredData(Store $store, $filters) {
         $qb = $this->createQueryBuilder('d')
             ->andWhere('d.store = :store')->setParameter('store', $store);
 
