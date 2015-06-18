@@ -35,11 +35,9 @@ class DataRepository extends EntityRepository
         return $this->getFilteredData($api->getStore(), new ArrayCollection(array_merge($api->getFilters()->toArray(), $additionalFilters)));
     }
 
-    private function getFilteredData(Store $store, $filters) {
+    private function getFilteredData(Store $store, Collection $filters) {
         $qb = $this->createQueryBuilder('d')
             ->andWhere('d.store = :store')->setParameter('store', $store);
-
-        $filter = $filters->getValues();
 
         if ($filters->count()) {
             $filteredData = [];
