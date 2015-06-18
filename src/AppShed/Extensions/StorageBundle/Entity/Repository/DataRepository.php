@@ -21,7 +21,7 @@ class DataRepository extends EntityRepository
      */
     public function getDataForView(View $view)
     {
-        return $this->getFilteredData($view->getStore(), $view->getFilters());
+        return $this->getFilteredData($view->getStore(), new ArrayCollection($view->getFilters()->toArray()));
     }
 
     /**
