@@ -11,6 +11,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityRepository;
 use AppShed\Extensions\StorageBundle\Entity\View;
+
 use Doctrine\ORM\Query\Expr;
 
 class DataRepository extends EntityRepository
@@ -21,7 +22,7 @@ class DataRepository extends EntityRepository
      */
     public function getDataForView(View $view)
     {
-        return $this->getFilteredData($view->getStore(), $view->getFilters());
+        return $this->getFilteredData($view->getStore(), new ArrayCollection($view->getFilters()->toArray()));
     }
 
     /**
@@ -34,11 +35,9 @@ class DataRepository extends EntityRepository
         return $this->getFilteredData($api->getStore(), new ArrayCollection(array_merge($api->getFilters()->toArray(), $additionalFilters)));
     }
 
-    private function getFilteredData(Store $store, ArrayCollection $filters) {
+    private function getFilteredData(Store $store, Collection $filters) {
         $qb = $this->createQueryBuilder('d')
             ->andWhere('d.store = :store')->setParameter('store', $store);
-
-        $filter = $filters->getValues();
 
         if ($filters->count()) {
             $filteredData = [];
