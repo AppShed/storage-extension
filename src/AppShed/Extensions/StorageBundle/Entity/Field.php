@@ -42,14 +42,6 @@ class Field
     private $aggregate;
 
     /**
-     * @var string
-     *
-     * @ORM\Column(name="arg", type="string", length=50, nullable=true)
-     */
-    private $arg;
-
-
-    /**
      * @var Api
      *
      * @ORM\ManyToOne(targetEntity="AppShed\Extensions\StorageBundle\Entity\Api", inversedBy="fields", cascade={"persist"})
@@ -75,10 +67,6 @@ class Field
     public function setField($field)
     {
         $this->field = $field;
-        if ($this->aggregate) {
-            $this->arg = $this->field;
-            $this->field = $this->aggregate . '(' . $this->arg . ')';
-        }
         return $this;
     }
 
@@ -101,8 +89,6 @@ class Field
     public function setAggregate($aggregate)
     {
         $this->aggregate = $aggregate;
-        $this->arg = $this->field;
-        $this->field = $this->aggregate . '(' . $this->arg . ')';
         return $this;
     }
 
@@ -139,26 +125,4 @@ class Field
         return $this->api;
     }
 
-    /**
-     * Set arg
-     *
-     * @param string $arg
-     * @return Field
-     */
-    public function setArg($arg)
-    {
-        $this->arg = $arg;
-
-        return $this;
-    }
-
-    /**
-     * Get arg
-     *
-     * @return string 
-     */
-    public function getArg()
-    {
-        return $this->arg;
-    }
 }

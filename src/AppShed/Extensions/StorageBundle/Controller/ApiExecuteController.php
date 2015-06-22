@@ -169,10 +169,13 @@ class ApiExecuteController extends Controller
         $storeData = $this->getDoctrine()->getManager()->getRepository('AppShedExtensionsStorageBundle:Data')->getDataForApi($api, $additionalFilters);
 
         $sql['select'] = [];
+        /** @var Field $field */
         foreach ($api->getFields() as $field) {
-            $sql['select'][] = $field->getField();
             if ($field->getAggregate()) {
                 $sql['aggregate'] = $field;
+                $sql['select'][] = $field->getAggregate() . '(' . $field->getField() . ')';
+            } else {
+                $sql['select'][] = $field->getField();
             }
         }
 
@@ -180,11 +183,15 @@ class ApiExecuteController extends Controller
         /** @var Data $row */
         foreach ($storeData as $row) {
             $data = $row->getData();
-            $record = [];
-            foreach ($sql['select'] as $field) {
-                $record[$field] = ((isset($data[$field])) ? ($data[$field]) : (null));
+            if (isset($sql['aggregate'])) {
+                $data[$sql['aggregate']->getAggregate() . '(' . $sql['aggregate']->getField() . ')'] = 0;
             }
-            $result[] = $record;
+            foreach ($sql['select'] as $field) {
+                if (!isset($data[$field])) {
+                    $data[$field] = null;
+                }
+            }
+            $result[] = $data;
         }
 
         //GROUP BY && DO AGGREGATE FUNCTIONS
@@ -208,12 +215,12 @@ class ApiExecuteController extends Controller
             // DO AGGREGATE FUNCTIONS (if any)
             /** @var Field $sql['aggregate']  */
             if (isset($sql['aggregate'])) {
-                $resultField = $sql['aggregate']->getField();
+                $resultField = $sql['aggregate']->getAggregate() . '(' . $sql['aggregate']->getField() . ')';
                 foreach ($resultGroup as $key => $resultGroupRecord) {
                     $functionInputData = [];
                     foreach ($resultGroupRecord as $record) {
-                        if ($record[$sql['aggregate']->getArg()] != null) {
-                            $functionInputData[] = $record[$sql['aggregate']->getArg()];
+                        if (isset($record[$sql['aggregate']->getField()]) && $record[$sql['aggregate']->getField()] != null) {
+                            $functionInputData[] = $record[$sql['aggregate']->getField()];
                         }
                     }
                     $resultGroup[$key][0][$resultField] = $this->aggregateFunction($sql['aggregate']->getAggregate(), $functionInputData);
@@ -223,6 +230,16 @@ class ApiExecuteController extends Controller
             $result = [];
             foreach ($resultGroup as $key => $resultGroupRecord) {
                 $result[] = $resultGroupRecord[0];
+            }
+        }
+
+        //REMOVE USELESS ROWS
+        foreach ($result as $recordKey => $recordValue) {
+            $keys = array_keys($recordValue);
+            foreach ($keys as $key) {
+                if (! in_array($key, $sql['select'])) {
+                    unset($result[$recordKey][$key]);
+                }
             }
         }
 
