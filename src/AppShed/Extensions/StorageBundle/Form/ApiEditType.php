@@ -43,18 +43,21 @@ class ApiEditType extends AbstractType
                     ])
                     ->add('groupField', 'choice', [
                         'required' => false,
-                        'choices' => $fields
+                        'choices' => $fields,
+                        'empty_value' => '[none]'
                     ])
                     ->add('orderField', 'choice', [
                         'required' => false,
-                        'choices' => $fields
+                        'choices' => $fields,
+                        'empty_value' => '[none]'
                     ])
                     ->add('orderDirection', 'choice', [
                         'required' => false,
                         'choices' => [
                             Api::ODRER_DIRECTION_ASC => Api::ODRER_DIRECTION_ASC,
                             Api::ODRER_DIRECTION_DESC => Api::ODRER_DIRECTION_DESC
-                        ]
+                        ],
+                        'empty_value' => '[none]'
                     ])
                     ->add('limit');
             } break;

@@ -44,7 +44,8 @@ class FieldType extends AbstractType
             ])
             ->add('aggregate', 'choice', [
                 'required' => false,
-                'choices' => $aggregate
+                'choices' => $aggregate,
+                'empty_value' => '[none]'
             ])
         ;
     }

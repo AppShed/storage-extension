@@ -27,12 +27,13 @@
                     {{ api.action }}
                 </td>
                 <td>
-                    <a href="{{ path('api_edit', appParams|merge({'uuid': api.uuid})) }}">Edit</a>
-                    |
-                    <a onclick="return confirm('Are you sure?');" href="{{ path('api_delete', appParams|merge({'uuid': api.uuid})) }}">Delete</a>
+                    <form method="POST" action="{{ path('api_delete', appParams|merge({'uuid': api.uuid})) }}" onsubmit="return confirm('Are you sure?');">
+                        <a class="btn btn-sm btn-success " href="{{ path('api_edit', appParams|merge({'uuid': api.uuid})) }}">Edit</a>
+                        <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+                    </form>
                 </td>
                 <td>
-                    <a href="{{ path('api_show', {'uuid': api.uuid}) }}">Link</a>
+                    <a href="{{ path('api_show', {'uuid': api.uuid}) }}" target="_blank">Link</a>
                 </td>
             </tr>
         {% endfor %}
