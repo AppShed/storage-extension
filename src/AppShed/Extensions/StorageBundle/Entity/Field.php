@@ -18,6 +18,7 @@ class Field
     const AGGREGATE_MIN = 'min';
     const AGGREGATE_MAX = 'max';
 
+
     /**
      * @var integer
      *

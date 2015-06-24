@@ -58,7 +58,8 @@ class ApiExecuteController extends Controller
 
 
 
-    private function deleteData(Api $api, Request $request) {
+    private function deleteData(Api $api, Request $request)
+    {
         $result = [];
 
         $filters = $request->request->get('filters', '');
@@ -83,7 +84,8 @@ class ApiExecuteController extends Controller
     }
 
 
-    private function updateData(Api $api, Request $request) {
+    private function updateData(Api $api, Request $request)
+    {
         $result = [];
         //get this data here (before getDataForApi()) because $em->clear() make bad
         $storeColumns = $api->getStore()->getColumns();
@@ -127,7 +129,8 @@ class ApiExecuteController extends Controller
         return ['updatedRows' => $executed];
     }
 
-    private function insertData(Api $api, Request $request) {
+    private function insertData(Api $api, Request $request)
+    {
         //get this data here (before getDataForApi()) because $em->clear() make bad
         $storeColumns = $api->getStore()->getColumns();
         $appId = $api->getApp()->getAppId();
@@ -160,7 +163,8 @@ class ApiExecuteController extends Controller
         return ['updatedRows' => $executed];
     }
 
-    private function selectData(Api $api, Request $request) {
+    private function selectData(Api $api, Request $request)
+    {
         $result = [];
 
         $filters = $request->request->get('filters', '');
@@ -223,7 +227,7 @@ class ApiExecuteController extends Controller
                             $functionInputData[] = $record[$sql['aggregate']->getField()];
                         }
                     }
-                    $resultGroup[$key][0][$resultField] = $this->aggregateFunction($sql['aggregate']->getAggregate(), $functionInputData);
+                    $resultGroup[$key][0] = $this->aggregateRowsFunction($sql['aggregate']->getAggregate(), $sql['aggregate']->getField(), $resultField, $resultGroup[$key]);
                 }
             }
 
@@ -245,11 +249,21 @@ class ApiExecuteController extends Controller
 
         //ORDER RESULTS
         if ($api->getOrderField()) {
-            if ($api->getOrderDirection() == Api::ODRER_DIRECTION_ASC) {
-                //Make different functions to decrease count IF statements inside function
-                usort($result, $this->sortOrderAsc($api->getOrderField()));
-            } else {
-                usort($result, $this->sortOrderDesc($api->getOrderField()));
+            $orderField = $api->getOrderField();
+            if ($api->getOrderField() == Api::ORDER_AGGREGATE_FUNCTION) {
+                if (isset($sql['aggregate'])) {
+                    $orderField = $sql['aggregate']->getAggregate() . '(' . $sql['aggregate']->getField() . ')';
+                } else {
+                    $orderField = '';
+                }
+            }
+            if ($orderField) {
+                if ($api->getOrderDirection() == Api::ODRER_DIRECTION_ASC) {
+                    //Make different functions to decrease count IF statements inside function
+                    usort($result, $this->sortOrderAsc($orderField));
+                } else {
+                    usort($result, $this->sortOrderDesc($orderField));
+                }
             }
         }
 
@@ -260,7 +274,8 @@ class ApiExecuteController extends Controller
         return $result;
     }
 
-    private function getAdditionalFilters($filters = '') {
+    private function getAdditionalFilters($filters = '')
+    {
         $additionalFilters = [];
         if ($filters) {
             $allowedOperations = [Filter::FILTER_GREATER_THAN_OR_EQUALS, Filter::FILTER_GREATER_THAN, Filter::FILTER_LESS_THAN_OR_EQUALS, Filter::FILTER_LESS_THAN, Filter::FILTER_NOT_EQUALS, Filter::FILTER_EQUALS]; //order of elements is important
@@ -281,7 +296,8 @@ class ApiExecuteController extends Controller
         return $additionalFilters;
     }
 
-    private function limitResults($result, $limit = '') {
+    private function limitResults($result, $limit = '')
+    {
         $limitParts = explode(',', $limit);
         if (count($limitParts) == 2) {
             $offset = trim($limitParts[0]);
@@ -293,31 +309,88 @@ class ApiExecuteController extends Controller
         return array_slice($result, $offset, $count);
     }
 
-    private function aggregateFunction($function, $input) {
+    private function aggregateRowsFunction($function, $field, $resultField, $data)
+    {
+        $row = $data[0];
         switch ($function) {
             case 'count':
-                return count($input);
+                $hasData = false;
+                $count = 0;
+                foreach ($data as $record) {
+                    if (isset($record[$field]) && $record[$field] != null) {
+                        $count++;
+                        $hasData = true;
+                    }
+                }
+                $result = (($hasData) ? ($count) : (null));
+            break;
             case 'sum':
-                return array_sum($input);
+                $hasData = false;
+                $sum = 0;
+                foreach ($data as $record) {
+                    if (isset($record[$field]) && $record[$field] != null) {
+                        $sum += $record[$field];
+                        $hasData = true;
+                    }
+                }
+                $result = (($hasData) ? ($sum) : (null));
+                break;
             case 'avg':
-                return array_sum($input) / count($input);
+                $hasData = false;
+                $sum = 0;
+                $count = 0;
+                foreach ($data as $record) {
+                    if (isset($record[$field]) && $record[$field] != null) {
+                        $sum += $record[$field];
+                        $count++;
+                        $hasData = true;
+                    }
+                }
+                $result = (($hasData) ? ($sum / $count) : (null));
+                break;
             case 'max':
-                return max($input);
+                $hasData = false;
+                foreach ($data as $record) {
+                    if (isset($record[$field]) && $record[$field] != null) {
+                        if (!isset($max) || $record[$field] > $max) {
+                            $max = $record[$field];
+                            $row = $record;
+                        }
+                        $hasData = true;
+                    }
+                }
+                $result = (($hasData) ? ($max) : (null));
+                break;
             case 'min':
-                return min($input);
+                $hasData = false;
+                foreach ($data as $record) {
+                    if (isset($record[$field]) && $record[$field] != null) {
+                        if (!isset($min) || $record[$field] < $min) {
+                            $min = $record[$field];
+                            $row = $record;
+                        }
+                        $hasData = true;
+                    }
+                }
+                $result = (($hasData) ? ($min) : (null));
+                break;
             default:
                 throw new NotImplementedException("Aggregate function '$function' not  implemented");
 
         }
+        $row[$resultField] = $result;
+        return $row;
     }
 
-    private function sortOrderAsc($field) {
+    private function sortOrderAsc($field)
+    {
         return function ($a, $b) use ($field) {
             return $a[$field] > $b[$field];
         };
     }
 
-    private function sortOrderDesc($field) {
+    private function sortOrderDesc($field)
+    {
         return function ($a, $b) use ($field) {
             return $a[$field] < $b[$field];
         };
