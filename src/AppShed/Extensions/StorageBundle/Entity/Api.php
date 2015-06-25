@@ -20,6 +20,8 @@ class Api
 
     const ODRER_DIRECTION_ASC = 'asc';
     const ODRER_DIRECTION_DESC = 'desc';
+    const ORDER_AGGREGATE_FUNCTION = 'aggregateFunction';
+    const ORDER_AGGREGATE_FUNCTION_TEXT = '[SELECT AGGREGATE FUNCTION]';
     const ACTION_SELECT = 'Select';
     const ACTION_INSERT = 'Insert';
     const ACTION_UPDATE = 'Update';

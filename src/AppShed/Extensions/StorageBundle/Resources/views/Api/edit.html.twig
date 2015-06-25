@@ -13,6 +13,18 @@
 {% block javascripts %}
     {% javascripts '@storage_js' '@AppShedExtensionsStorageBundle/Resources/private/js/Read/filters.js' filter='?uglifyjs2' %}
     <script src="{{ asset_url }}"></script>
+    <script>
+        function rebuildOrderField() {
+            var aggregate = '';
+            jQuery('#form_row_appshed_extensions_storagebundle_api_edit_fields .form-collection-elements .aggragate_select').each(function(idx, el) {
+                if (jQuery(el).val() && ! aggregate) {
+                    aggregate = jQuery(el).val() + '(' + jQuery(el).closest('.form-collection-element').find('.aggragate_field').val() + ')';
+                }
+            });
+            jQuery("#appshed_extensions_storagebundle_api_edit_orderField option[value='{{ const.orderAggregateFunction }}']").text(aggregate || '{{ const.orderAggregateFunctionText }}');
+        }
+
+    </script>
     {% endjavascripts %}
 {% endblock %}
 

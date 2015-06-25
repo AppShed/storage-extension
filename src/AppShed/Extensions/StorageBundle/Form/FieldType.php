@@ -40,12 +40,21 @@ class FieldType extends AbstractType
 
         $builder
             ->add('field', 'choice', [
-                'choices' => $fields
+                'choices' => $fields,
+                'attr' => [
+                    'class' => 'aggragate_field',
+                    'onChange' => 'rebuildOrderField()'
+                ]
             ])
             ->add('aggregate', 'choice', [
                 'required' => false,
                 'choices' => $aggregate,
-                'empty_value' => '[none]'
+                'empty_value' => '[none]',
+                'attr' => [
+                    'class' => 'aggragate_select',
+                    'onChange' => 'rebuildOrderField()'
+                ]
+
             ])
         ;
     }

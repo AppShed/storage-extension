@@ -3,6 +3,7 @@
 namespace AppShed\Extensions\StorageBundle\Form;
 
 use AppShed\Extensions\StorageBundle\Entity\Api;
+use AppShed\Extensions\StorageBundle\Entity\Field;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -24,7 +25,17 @@ class ApiEditType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $fields = $this->api->getStore()->getColumns();
-        $fields = array_combine ($fields, $fields);
+        $fieldsOrder = $fields = array_combine ($fields, $fields);
+
+        $fieldsOrder[Api::ORDER_AGGREGATE_FUNCTION] = Api::ORDER_AGGREGATE_FUNCTION_TEXT;;
+        $selectFields = $this->api->getFields();
+        /** @var Field $selectField */
+        foreach ($selectFields as $selectField) {
+            if ($selectField->getAggregate()) {
+                $fieldsOrder[Api::ORDER_AGGREGATE_FUNCTION] = $selectField->getAggregate() . '(' . $selectField->getField() . ')';
+                break;
+            }
+        }
 
         switch ($this->api->getAction()) {
             case Api::ACTION_SELECT: {
@@ -48,7 +59,7 @@ class ApiEditType extends AbstractType
                     ])
                     ->add('orderField', 'choice', [
                         'required' => false,
-                        'choices' => $fields,
+                        'choices' => $fieldsOrder,
                         'empty_value' => '[none]'
                     ])
                     ->add('orderDirection', 'choice', [

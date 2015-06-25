@@ -111,7 +111,11 @@ class ApiController extends StorageController
         return [
             'api' => $api,
             'form'   => $form->createView(),
-            'appParams' => $appParams
+            'appParams' => $appParams,
+            'const' => [
+                'orderAggregateFunction' => Api::ORDER_AGGREGATE_FUNCTION,
+                'orderAggregateFunctionText' => Api::ORDER_AGGREGATE_FUNCTION_TEXT
+            ]
         ];
     }
 
