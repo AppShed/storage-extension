@@ -33,7 +33,8 @@
                     </form>
                 </td>
                 <td>
-                    <a href="{{ path('api_show', {'uuid': api.uuid}) }}" target="_blank">Link</a>
+                    <a class="btn btn-sm btn-default" href="{{ path('api_show', {'uuid': api.uuid}) }}" target="_blank">Link</a>
+                    <a class="btn btn-sm btn-default" href="{{ apiVisualizerUrl }}#{{ url('api_show', {'uuid': api.uuid}) }}" target="_blank">Get</a>
                 </td>
             </tr>
         {% endfor %}

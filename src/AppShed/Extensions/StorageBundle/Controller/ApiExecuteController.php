@@ -227,7 +227,7 @@ class ApiExecuteController extends Controller
                             $functionInputData[] = $record[$sql['aggregate']->getField()];
                         }
                     }
-                    $resultGroup[$key][0] = $this->aggregateRowsFunction($sql['aggregate']->getAggregate(), $sql['aggregate']->getField(), $resultField, $resultGroup[$key]);
+                        $resultGroup[$key][0] = $this->aggregateRowsFunction($sql['aggregate']->getAggregate(), $sql['aggregate']->getField(), $resultField, $resultGroup[$key]);
                 }
             }
 

@@ -33,7 +33,8 @@ class ApiController extends StorageController
         $app = $this->getApp($request);
         return [
             'apis' => $this->getDoctrine()->getRepository('AppShedExtensionsStorageBundle:Api')->findBy(['app' => $app]),
-            'appParams' => $this->getExtensionAppParameters($request)
+            'appParams' => $this->getExtensionAppParameters($request),
+            'apiVisualizerUrl' => $this->container->getParameter('api_visualizer_url')
         ];
     }
 
@@ -46,6 +47,11 @@ class ApiController extends StorageController
     {
         $app = $this->getApp($request);
         $appParams = $this->getExtensionAppParameters($request);
+
+        if (!$app->getId()) {
+            $this->getDoctrine()->getManager()->persist($app);
+            $this->getDoctrine()->getManager()->flush();
+        }
 
         $api = new Api();
         $api->setApp($app);

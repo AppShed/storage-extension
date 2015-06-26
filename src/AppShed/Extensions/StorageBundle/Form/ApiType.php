@@ -15,6 +15,7 @@ class ApiType extends AbstractType
     public function __construct($app = null)
     {
         $this->app = $app;
+
     }
 
     /**
@@ -36,17 +37,21 @@ class ApiType extends AbstractType
             ->add('action', 'choice', [
                 'choices' => $action
             ])
-            ->add('store', 'entity', array(
-                    'class' => 'AppShedExtensionsStorageBundle:Store',
-                    'query_builder' => function(EntityRepository $er, $options = '') {
-                        return $er->createQueryBuilder('s')
-                            ->where('s.app = :app')
-                            ->setParameter('app', $this->app)
-                            ->orderBy('s.name', 'ASC');
-                    },)
-            )
+            ->add('store', 'entity', [
+                'class' => 'AppShedExtensionsStorageBundle:Store',
+                'query_builder' => function(EntityRepository $er, $options = '') {
+                    return $er->createQueryBuilder('s')
+                        ->where('s.app = :app')
+                        ->setParameter('app', $this->app)
+                        ->orderBy('s.name', 'ASC');
+                }
+            ])
 
-            ->add('next', 'submit')
+            ->add('next', 'submit', [
+                'attr' => [
+                    'class' => 'btn-submit-float'
+                ]
+            ])
         ;
     }
     

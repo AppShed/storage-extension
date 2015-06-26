@@ -18,3 +18,4 @@ parameters:
     node_modules: [%kernel.root_dir%/../node_modules]
     uglifycss_path: %kernel.root_dir%/../node_modules/.bin/uglifycss
     uglifyjs_path: %kernel.root_dir%/../node_modules/.bin/uglifyjs
+    api_visualizer_url: 'http://api-visualizer.appshed.com/'
