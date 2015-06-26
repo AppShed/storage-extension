@@ -88,7 +88,11 @@ class ApiEditType extends AbstractType
             } break;
         }
         $builder
-            ->add('save', 'submit')
+            ->add('save', 'submit', [
+                'attr' => [
+                    'class' => 'btn-submit-float'
+                ]
+            ])
         ;
     }
     

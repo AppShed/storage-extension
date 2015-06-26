@@ -53,6 +53,11 @@ assetic:
                 - %kernel.root_dir%/../vendor/twbs/bootstrap/less/bootstrap.less
             filters:
                 - less
+        custom_css:
+            inputs:
+                - @AppShedExtensionsStorageBundle/Resources/private/css/custom_css.less
+            filters:
+                - less
         bootstrap_js:
             inputs:
                 - %kernel.root_dir%/../vendor/twbs/bootstrap/js/transition.js
@@ -73,6 +78,7 @@ assetic:
         storage_css:
             inputs:
                 - @bootstrap_css
+                - @custom_css
             filters:
                 - less
                 - cssrewrite
