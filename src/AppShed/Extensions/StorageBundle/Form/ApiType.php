@@ -15,7 +15,6 @@ class ApiType extends AbstractType
     public function __construct($app = null)
     {
         $this->app = $app;
-
     }
 
     /**
