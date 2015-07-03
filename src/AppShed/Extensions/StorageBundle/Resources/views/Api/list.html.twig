@@ -34,7 +34,7 @@
                 </td>
                 <td>
                     <a class="btn btn-sm btn-default" href="{{ path('api_show', {'uuid': api.uuid}) }}" target="_blank">Link</a>
-                    <a class="btn btn-sm btn-default" href="{{ apiVisualizerUrl }}#{{ app.request.getSchemeAndHttpHost() ~ path('api_show', {'uuid': api.uuid}) }}" target="_blank">Get</a>
+                    <a class="btn btn-sm btn-default" href="{{ apiVisualizerUrl }}#{{ url('api_show', {'uuid': api.uuid}) }}" target="_blank">Get</a>
                 </td>
             </tr>
         {% endfor %}
