@@ -13,6 +13,7 @@ use AppShed\Extensions\StorageBundle\Exception\MissingDataException;
 use AppShed\Extensions\StorageBundle\Exception\NotImplementedException;
 use AppShed\Extensions\StorageBundle\Form\ApiEditType;
 use AppShed\Extensions\StorageBundle\Form\ApiType;
+use Doctrine\ORM\EntityManager;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
@@ -73,8 +74,10 @@ class ApiExecuteController extends Controller
 
         $executed = 0;
         if (count($storeData)) {
+            /** @var EntityManager $em */
             $em = $this->getDoctrine()->getManager();
             foreach ($storeData as $k => $value) {
+                $storeData[$k] = $em->merge($storeData[$k]);
                 $em->remove($storeData[$k]);
             }
             $executed++;
