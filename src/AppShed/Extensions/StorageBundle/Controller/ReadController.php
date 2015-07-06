@@ -98,10 +98,16 @@ class ReadController extends StorageController
                     unset($data['title']);
                 } else {
                     $title = current($data);
+                    if (is_array($title)) {
+                        $title = array_keys($data)[0];
+                    }
                 }
 
                 $dataScreen = new Screen($title);
                 foreach ($data as $key => $value) {
+                    if (is_array($value)) {
+                        $value = '[' . implode(', ', $value) . ']';
+                    }
                     $dataScreen->addChild(new Thumb($key, $value));
                 }
 
