@@ -52,6 +52,17 @@ class WriteController extends StorageController
         $store = $view->getStore();
 
         $data = Remote::getRequestVariables();
+
+        $systemFields = $this->container->getParameter('data_system_fields');
+        foreach ($data as $key => $record) {
+            if (in_array($key, $systemFields)) {
+                unset($data[$key]);
+            }
+            if (is_array($record)) {
+                $data[$key] = '[' . implode(', ', $record) . ']';
+            }
+        }
+
         $cols = array_keys($data);
         if (!count($cols)) {
             $screen = new Screen("Error");
