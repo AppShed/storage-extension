@@ -28,7 +28,9 @@
                 </td>
                 <td>
                     <form method="POST" action="{{ path('api_delete', appParams|merge({'uuid': api.uuid})) }}" onsubmit="return confirm('Are you sure?');">
-                        <a class="btn btn-sm btn-success " href="{{ path('api_edit', appParams|merge({'uuid': api.uuid})) }}">Edit</a>
+                        {% if api.action != 'Insert' %}
+                            <a class="btn btn-sm btn-success " href="{{ path('api_edit', appParams|merge({'uuid': api.uuid})) }}">Edit</a>
+                        {% endif %}
                         <button class="btn btn-sm btn-danger" type="submit">Delete</button>
                     </form>
                 </td>
